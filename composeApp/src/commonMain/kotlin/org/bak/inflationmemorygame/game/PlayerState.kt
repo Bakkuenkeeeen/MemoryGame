@@ -6,17 +6,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import org.bak.inflationmemorygame.abilities.AbilityCard
-import org.bak.inflationmemorygame.abilities.ObtainedAbility
+import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.params.Params
 
 @Stable
 class PlayerState {
 
-    lateinit var joiningGameState: () -> GameState
-
     /** 獲得済み能力リスト. */
-    val obtainedAbilities = mutableStateListOf<ObtainedAbility>()
+    val earnedAbilities = mutableStateListOf<EarnedAbility>()
 
     /** 発動中の効果リスト. */
     private val statusEffects = mutableStateListOf<StatusEffect>()
@@ -40,11 +38,20 @@ class PlayerState {
     /** めくった枚数. */
     val flippedCount: Int by derivedStateOf { flippedCards.size }
 
+    fun onFlip(card: AbilityCard) {
+        flippedCards.add(card)
+    }
+
+    fun onAbilityEarn(ability: EarnedAbility) {
+        earnedAbilities.add(ability)
+    }
+
+    fun onEffectGain(effect: StatusEffect) {
+        statusEffects.add(effect)
+    }
+
     fun onTurnStart() {
         flippedCards.clear()
-        obtainedAbilities.mapNotNull { it.onTurnStart() }.sortedBy { it.priority }.forEach {
-            it.dispatch(gameState = joiningGameState())
-        }
     }
 }
 

@@ -11,13 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.bak.inflationmemorygame.abilities.AbilityCard
-import org.bak.inflationmemorygame.abilities.cards.PlusOne
+import org.bak.inflationmemorygame.abilities.cards.PlusOneCard
 import kotlin.coroutines.EmptyCoroutineContext
 
 @Stable
 class StageState(val stage: Int = 1) {
-
-    lateinit var gameState: () -> GameState
 
     /** 現在のターン数. */
     var turns: Int by mutableIntStateOf(0)
@@ -30,16 +28,22 @@ class StageState(val stage: Int = 1) {
         CoroutineScope(EmptyCoroutineContext).launch(Dispatchers.Default) {
             delay(1_000)
             repeat(10) {
-                cards.add(PlusOne())
+                cards.add(PlusOneCard())
             }
         }
     }
 
     fun onTurnStart() {
         turns++
-        cards.mapNotNull { it?.onTurnStart() }.sortedBy { it.priority }.forEach {
-            it.dispatch(gameState())
-        }
+    }
+
+    fun onFlip(card: AbilityCard) {
+        card.onSurfaceChange(isFaceUp = true)
+    }
+
+    fun onPairMatch(card: AbilityCard, matchedCard: AbilityCard) {
+        card.onMatch()
+        matchedCard.onMatch()
     }
 }
 
