@@ -24,7 +24,7 @@ class PlayerState {
         val fixedValueEffects =
             statusEffects.filter { it.calculationType is StatusEffect.CalculationType.Fixed }
         if (fixedValueEffects.isEmpty()) {
-            Params.DefaultFlipCount + statusEffects.sumOf { it.amount }
+            Params.DEFAULT_FLIP_COUNT + statusEffects.sumOf { it.amount }
         } else {
             fixedValueEffects.maxByOrNull {
                 (it.calculationType as StatusEffect.CalculationType.Fixed).priority

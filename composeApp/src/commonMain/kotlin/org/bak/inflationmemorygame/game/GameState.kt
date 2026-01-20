@@ -5,19 +5,28 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.params.Params
 
 @Stable
 class GameState(
+    private val coroutineScope: CoroutineScope,
     private val stages: SnapshotStateList<StageState>,
     private val players: SnapshotStateList<PlayerState>
 ) {
-
-    val isStageReady: Boolean by derivedStateOf { currentStage.cards.isNotEmpty() }
 
     val currentStage: StageState by derivedStateOf { stages.maxBy { it.stage } }
 
@@ -25,15 +34,34 @@ class GameState(
         players[(currentStage.turns - 1) % players.size]
     }
 
-    fun startStage() {
+    val messages = mutableStateListOf<LogMessage>()
 
+    fun pushMessage(message: AnnotatedString) {
+        messages.add(LogMessage(message = message))
+        coroutineScope.launch {
+            delay(Params.MESSAGE_SPEED_IN_MILLIS_NORMAL)
+            messages.removeFirst()
+        }
+    }
+
+    suspend fun startStage() {
+        pushMessage(AnnotatedString("Starting stage..."))
+        delay(5_000)
+        if (currentStage.tryStartStage()) {
+            pushMessage(AnnotatedString("Stage${currentStage.stage} started."))
+        } else {
+            pushMessage(AnnotatedString("すでにステージが生成されています"))
+        }
+        startTurn()
     }
 
     fun startTurn() {
-        currentStage.also { it.onTurnStart() }
-            .cards.mapNotNull { it?.onTurnStart() }.forEach {
-                it.dispatch(param = OnTurnStartEffectHandler.Param(gameState = this))
-            }
+        currentStage.also {
+            it.onTurnStart()
+            pushMessage(AnnotatedString("Turn ${currentStage.turns}"))
+        }.cards.mapNotNull { it?.onTurnStart() }.forEach {
+            it.dispatch(param = OnTurnStartEffectHandler.Param(gameState = this))
+        }
         currentPlayer.also { it.onTurnStart() }
             .earnedAbilities.mapNotNull { it.onTurnStart() }.forEach {
                 it.dispatch(param = OnTurnStartEffectHandler.Param(gameState = this))
@@ -47,6 +75,12 @@ class GameState(
         } else {
             currentStage.onFlip(card = card)
             currentPlayer.onFlip(card = card)
+            pushMessage(buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(card.displayName)
+                }
+                append("を発見した")
+            })
             // TODO 自動拡大の設定がONなら、ダイアログ出してから
 
             // カードをめくったとき(ペア判定前)の効果発動
@@ -99,6 +133,7 @@ fun rememberSinglePlayerGameState(
     playerState: PlayerState = rememberPlayerState()
 ): GameState {
     return GameState(
+        coroutineScope = rememberCoroutineScope(),
         stages = mutableStateListOf(stageState),
         players = mutableStateListOf(playerState)
     )

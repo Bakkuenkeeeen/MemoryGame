@@ -6,13 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.cards.PlusOneCard
-import kotlin.coroutines.EmptyCoroutineContext
 
 @Stable
 class StageState(val stage: Int = 1) {
@@ -22,15 +17,19 @@ class StageState(val stage: Int = 1) {
         private set
 
     /** 場札. 獲得済みのカードはnullにする. */
-    val cards = mutableStateListOf<AbilityCard?>()
+    val cards = mutableStateListOf<AbilityCard?>().apply {
+        addAll(List(10) { null })
+    }
 
-    init {
-        CoroutineScope(EmptyCoroutineContext).launch(Dispatchers.Default) {
-            delay(1_000)
-            repeat(10) {
-                cards.add(PlusOneCard())
-            }
+    private var isStageStarted = false
+
+    fun tryStartStage(): Boolean {
+        if (!isStageStarted) {
+            isStageStarted = true
+            cards.addAll(List(10) { PlusOneCard() })
+            return true
         }
+        return false
     }
 
     fun onTurnStart() {
