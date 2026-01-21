@@ -76,7 +76,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
         if (card.isFaceUp) {
             // TODO 拡大表示
-        } else {
+        } else if (currentPlayer.isFlippable) {
             currentStage.onFlip(card = card)
             currentPlayer.onFlip(card = card)
             pushMessage(buildAnnotatedString {
@@ -127,6 +127,8 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
                 // }.forEach { ... }
             }
             // TODO 一連の処理内で発動した効果によって表になったカードのペア成立判定
+        } else {
+            pushMessage(AnnotatedString("このターンは、もうめくれない"))
         }
     }
 }

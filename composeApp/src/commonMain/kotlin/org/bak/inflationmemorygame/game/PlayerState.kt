@@ -38,6 +38,9 @@ class PlayerState {
     /** めくった枚数. */
     val flippedCount: Int by derivedStateOf { flippedCards.size }
 
+    /** まだめくれるか. */
+    val isFlippable: Boolean by derivedStateOf { flippedCount < maxFlipCount }
+
     fun onFlip(card: AbilityCard) {
         flippedCards.add(card)
     }
