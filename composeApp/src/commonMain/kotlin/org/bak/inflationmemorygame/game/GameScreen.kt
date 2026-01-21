@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.abilities.AbilityCard
-import org.bak.inflationmemorygame.components.CardCell
+import org.bak.inflationmemorygame.components.CardArea
 import org.bak.inflationmemorygame.components.LogArea
 
 @Composable
@@ -43,7 +43,7 @@ fun BoardArea(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(stageState.cards) {
-            CardCell(card = it) { onCardClick(it!!) }
+            CardArea(card = it) { onCardClick(it) }
         }
     }
 }

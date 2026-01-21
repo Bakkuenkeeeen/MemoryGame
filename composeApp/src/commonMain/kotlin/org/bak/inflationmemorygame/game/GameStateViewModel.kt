@@ -23,7 +23,7 @@ import org.bak.inflationmemorygame.params.Params
 
 class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
-    private val stages = mutableStateListOf<StageState>(StageState(stage = initialStage))
+    private val stages = mutableStateListOf(StageState(stage = initialStage))
     private val players = mutableStateListOf<PlayerState>().apply {
         addAll(List(playerCount) { PlayerState() })
     }

@@ -16,10 +16,8 @@ class StageState(val stage: Int = 1) {
     var turns: Int by mutableIntStateOf(0)
         private set
 
-    /** 場札. 獲得済みのカードはnullにする. */
-    val cards = mutableStateListOf<AbilityCard?>().apply {
-        addAll(List(10) { null })
-    }
+    /** 場札. */
+    val cards = mutableStateListOf<AbilityCard>()
 
     private var isStageStarted = false
 
