@@ -1,4 +1,5 @@
 [versions]
+adaptive = "1.2.0"
 agp = "8.13.2"
 android-compileSdk = "36"
 android-minSdk = "24"
@@ -16,6 +17,7 @@ kotlin = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 
 [libraries]
+androidx-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }

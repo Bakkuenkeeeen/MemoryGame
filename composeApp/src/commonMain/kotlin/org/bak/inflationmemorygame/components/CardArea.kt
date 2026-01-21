@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -70,8 +69,7 @@ private fun BoxScope.Card(modifier: Modifier = Modifier, card: AbilityCard, onCl
         painter = painterResource(if (card.isFaceUp) card.image else Res.drawable.common_back),
         contentDescription = null,
         modifier = modifier
-            .fillMaxHeight()
-            .aspectRatio(ratio = 0.5f, matchHeightConstraintsFirst = true)
+            .aspectRatio(ratio = 0.5f)
             .clip(shape = Shape)
             .align(Alignment.Center)
             .clickable(
