@@ -1,16 +1,21 @@
 package org.bak.inflationmemorygame.game
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.components.BoardArea
 import org.bak.inflationmemorygame.components.LogArea
 import org.bak.inflationmemorygame.isWindowWidthCompact
@@ -28,6 +33,12 @@ fun GameScreen(state: GameStateViewModel = gameStateViewModel()) {
 @Composable
 fun CompactGameScreen(state: GameStateViewModel) {
     Column {
+        UtilityArea(
+            modifier = Modifier.fillMaxWidth(),
+            onEndTurnClick = { state.onEndTurnClick() },
+            onPauseClick = {},
+            onSettingClick = {}
+        )
         BoardArea(
             modifier = Modifier.fillMaxWidth().weight(8f),
             stageState = state.currentStage,
@@ -38,10 +49,13 @@ fun CompactGameScreen(state: GameStateViewModel) {
         }
         Row(modifier = Modifier.weight(2f)) {
             PlayerStatusArea(
-                modifier = Modifier.weight(1f).fillMaxSize(),
+                modifier = Modifier.weight(7f).fillMaxSize(),
                 playerState = state.currentPlayer
             )
-            LogArea(modifier = Modifier.weight(1f).fillMaxSize(), logs = state.messages)
+            LogArea(
+                modifier = Modifier.weight(3f).fillMaxSize(),
+                logMessageState = state.logMessageState
+            )
         }
     }
 }
@@ -60,7 +74,7 @@ fun WideGameScreen(state: GameStateViewModel) {
             }
             PlayerStatusArea(playerState = state.currentPlayer)
         }
-        LogArea(modifier = Modifier.weight(3f), logs = state.messages)
+        LogArea(modifier = Modifier.weight(3f), logMessageState = state.logMessageState)
     }
 }
 
@@ -85,9 +99,18 @@ fun StageInfoArea(stageState: StageState) {
 
 @Composable
 fun UtilityArea(
+    modifier: Modifier = Modifier,
     onEndTurnClick: () -> Unit,
     onPauseClick: () -> Unit,
     onSettingClick: () -> Unit
 ) {
-
+    Row(
+        modifier = modifier.padding(all = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Spacer(modifier = Modifier.weight(1f)) // 右詰め
+        TextButton(onClick = onEndTurnClick) {
+            Text("ターン終了")
+        }
+    }
 }

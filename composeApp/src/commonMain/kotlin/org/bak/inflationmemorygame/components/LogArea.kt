@@ -22,14 +22,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import org.bak.inflationmemorygame.fontFamily
 import org.bak.inflationmemorygame.game.LogMessage
+import org.bak.inflationmemorygame.game.LogMessageState
 
 @Composable
-fun LogArea(modifier: Modifier = Modifier.Companion, logs: List<LogMessage>) {
+fun LogArea(modifier: Modifier = Modifier.Companion, logMessageState: LogMessageState) {
     LazyColumn(
         modifier = modifier.fillMaxHeight().background(color = Color.LightGray),
         reverseLayout = true
     ) {
-        items(items = logs, key = { it.instanceId }) {
+        items(items = logMessageState.messages, key = { it.instanceId }) {
             LogMessageRow(modifier = Modifier.animateItem(), log = it)
         }
     }

@@ -39,7 +39,7 @@ class GameState(
     fun pushMessage(message: AnnotatedString) {
         messages.add(LogMessage(message = message))
         coroutineScope.launch {
-            delay(Params.MESSAGE_SPEED_IN_MILLIS_NORMAL)
+            delay(Params.MESSAGE_DURATION_MILLIS_NORMAL)
             messages.removeFirst()
         }
     }

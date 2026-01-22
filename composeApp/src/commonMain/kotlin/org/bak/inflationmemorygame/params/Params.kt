@@ -3,7 +3,8 @@ package org.bak.inflationmemorygame.params
 object Params {
     const val DEFAULT_FLIP_COUNT = 2
 
-    const val MESSAGE_SPEED_IN_MILLIS_NORMAL = 3_000L
+    const val MESSAGE_ADD_INTERVAL_IN_MILLIS_NORMAL = 500L
+    const val MESSAGE_DURATION_MILLIS_NORMAL = 3_000L
 
     const val CARD_APPEAR_ANIMATION_DURATION_MILLIS = 500
 
