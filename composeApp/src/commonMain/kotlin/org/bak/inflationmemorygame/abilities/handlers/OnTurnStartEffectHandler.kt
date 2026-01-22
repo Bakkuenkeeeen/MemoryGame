@@ -1,7 +1,8 @@
 package org.bak.inflationmemorygame.abilities.handlers
 
 import org.bak.inflationmemorygame.abilities.EffectHandler
-import org.bak.inflationmemorygame.game.GameState
+import org.bak.inflationmemorygame.game.PlayerState
+import org.bak.inflationmemorygame.game.StageState
 
 /**
  * ターン開始時に発動する効果.
@@ -9,6 +10,6 @@ import org.bak.inflationmemorygame.game.GameState
 interface OnTurnStartEffectHandler : EffectHandler {
     fun dispatch(param: Param): Result
 
-    class Param(val gameState: GameState)
+    class Param(val stageState: StageState, val nextPlayer: PlayerState)
     class Result
 }

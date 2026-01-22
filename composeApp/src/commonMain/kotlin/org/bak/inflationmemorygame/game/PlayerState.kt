@@ -49,6 +49,10 @@ class PlayerState {
         earnedAbilities.add(ability)
     }
 
+    fun onAbilityLost(ability: EarnedAbility) {
+        earnedAbilities.remove(ability)
+    }
+
     fun onEffectGain(effect: StatusEffect) {
         statusEffects.add(effect)
     }

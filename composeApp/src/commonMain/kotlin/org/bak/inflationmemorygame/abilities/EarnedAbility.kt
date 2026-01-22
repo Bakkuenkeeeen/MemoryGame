@@ -23,7 +23,19 @@ abstract class EarnedAbility(val actual: Abilities) : Ability by actual {
 
     abstract fun onEarn(): OnAbilityEarnEffectHandler?
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
-    abstract fun onLost(): OnAbilityLostEffectHandler?
+    open fun onLost(): OnAbilityLostEffectHandler? {
+        if (effectState == EffectState.Active) {
+            return object : OnAbilityLostEffectHandler {
+                // TODO 複数の能力が一気に削除された場合に、削除される順番を考慮しないといけないケースが出てくる？
+                override val priority: Int = EffectHandler.PRIORITY_DEFAULT
+                override fun dispatch(param: OnAbilityLostEffectHandler.Param): OnAbilityLostEffectHandler.Result {
+                    param.owner.onAbilityLost(ability = this@EarnedAbility)
+                    return OnAbilityLostEffectHandler.Result(removingEffectParentInstanceId = instanceId)
+                }
+            }
+        }
+        return null
+    }
 
     protected enum class EffectState {
         Idle,
