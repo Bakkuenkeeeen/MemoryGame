@@ -57,7 +57,11 @@ class PlayerState {
         statusEffects.add(effect)
     }
 
-    fun onTurnStart() {
+    fun onEffectLost(parentAbilityInstanceId: Long) {
+        statusEffects.removeAll { it.parentAbilityInstanceId == parentAbilityInstanceId }
+    }
+
+    fun clearFlippedCards() {
         flippedCards.clear()
     }
 }

@@ -15,8 +15,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.bak.inflationmemorygame.abilities.AbilityCard
+import org.bak.inflationmemorygame.abilities.EarnedAbility
+import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.params.Params
 
 class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
@@ -34,6 +37,9 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     val logMessageState = LogMessageState(coroutineScope = viewModelScope)
 
+    private val additionalFlippedCards = mutableListOf<AbilityCard>()
+
+
     init {
         viewModelScope.launch { startStage() }
     }
@@ -50,20 +56,72 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
     }
 
     suspend fun startTurn() {
-        currentStage.also {
-            it.onTurnStart()
-            logMessageState.pushMessage(AnnotatedString("ターン ${currentStage.turns}"))
-        }.cards.mapNotNull { it?.onTurnStart() }.forEach {
-            // it.dispatch(param = OnTurnStartEffectHandler.Param(gameState = this))
+        currentStage.incrementTurn()
+        currentPlayer.clearFlippedCards()
+        logMessageState.pushMessage(AnnotatedString("ターン ${currentStage.turns}"))
+
+        // 場札の効果発動
+        dispatchAllEffectHandlersFromStage(handler = { it.onTurnStart() }, dispatcher = {
+            it.dispatch(
+                param = OnTurnStartEffectHandler.Param(
+                    stageState = currentStage,
+                    nextPlayer = currentPlayer
+                )
+            )
+        })
+
+        // 獲得済み能力の効果発動
+        dispatchAllEffectHandlersFromPlayer(handler = { it.onTurnStart() }, dispatcher = {
+            it.dispatch(
+                param = OnTurnStartEffectHandler.Param(
+                    stageState = currentStage,
+                    nextPlayer = currentPlayer
+                )
+            )
+        })
+
+        // 能力によって表になったカードの処理
+        handleAdditionalFlippedCard { unlockScreen() }
+    }
+
+    private fun handleAdditionalFlippedCard(completion: () -> Unit) {
+        val card = additionalFlippedCards.removeFirstOrNull()
+        if (card == null) {
+            completion()
+        } else {
+
         }
-        currentPlayer.also { it.onTurnStart() }
-            .earnedAbilities.mapNotNull { it.onTurnStart() }.forEach {
-                // it.dispatch(param = OnTurnStartEffectHandler.Param(gameState = this))
-            }
+    }
+
+    private fun lockScreen() {
+        currentStage.disableAllCards()
+        // TODO ボタンも無効化
+    }
+
+    private fun unlockScreen() {
+        currentStage.enableAllCards()
+        // TODO ボタンも有効化
     }
 
     fun onEndTurnClick() {
+        if (currentPlayer.isFlippable) {
+            // TODO ダイアログ表示
+        } else {
+            // 連打抑止のため、同期的にUIを無効化
+            lockScreen()
+            endTurnAsync()
+        }
+    }
 
+    private fun endTurnAsync() {
+        viewModelScope.launch {
+            // ステージ効果発動
+            // 獲得済み能力の効果発動
+            // TODO 表のままにしておくカードの制御
+            currentStage.reverseAllCards()
+            delay(Params.CARD_FLIP_ANIMATION_DURATION_MILLIS.toLong())
+            startTurn()
+        }
     }
 
     fun onCardClick(card: AbilityCard) {
@@ -71,7 +129,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         if (card.isFaceUp) {
             // TODO 拡大表示
         } else if (currentPlayer.isFlippable) {
-            currentStage.onFlip(card = card)
+            currentStage.flipCard(card = card)
             currentPlayer.onFlip(card = card)
             logMessageState.pushMessageAsync(buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -123,6 +181,50 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
             // TODO 一連の処理内で発動した効果によって表になったカードのペア成立判定
         } else {
             logMessageState.pushMessageAsync(AnnotatedString("このターンは、もうめくれない"))
+        }
+    }
+
+    private fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromStage(
+        stage: StageState = currentStage,
+        handler: (AbilityCard) -> T?,
+        dispatcher: (T) -> R,
+        action: (R) -> Unit = {}
+    ) {
+        dispatchAllEffectHandlers(
+            handlers = stage.cards.mapNotNull { handler(it) },
+            dispatcher = dispatcher,
+            action = action
+        )
+    }
+
+    private fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromPlayer(
+        player: PlayerState = currentPlayer,
+        handler: (EarnedAbility) -> T?,
+        dispatcher: (T) -> R,
+        action: (R) -> Unit = {}
+    ) {
+        dispatchAllEffectHandlers(
+            handlers = player.earnedAbilities.mapNotNull { handler(it) },
+            dispatcher = dispatcher,
+            action = action
+        )
+    }
+
+    private fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlers(
+        handlers: Collection<T>,
+        dispatcher: (T) -> R,
+        action: (R) -> Unit = {}
+    ) {
+        handlers.sortedBy { it.priority }.forEach { handler ->
+            val result = dispatcher(handler).also {
+                it.message?.let { message -> logMessageState.pushMessageAsync(message = message) }
+                it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
+                it.lostEffectParentInstanceIds.forEach { instanceId ->
+                    currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
+                }
+                additionalFlippedCards.addAll(it.additionalFlippedCards)
+            }
+            action(result)
         }
     }
 }

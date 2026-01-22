@@ -27,7 +27,7 @@ abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
     /** クリック可能かどうか. */
     var isInteractionEnabled: Boolean by mutableStateOf(true)
 
-    fun onSurfaceChange(isFaceUp: Boolean) {
+    fun changeSurface(isFaceUp: Boolean) {
         this.isFaceUp = isFaceUp
     }
 

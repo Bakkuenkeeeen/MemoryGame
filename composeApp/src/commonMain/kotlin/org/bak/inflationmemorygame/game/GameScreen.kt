@@ -49,11 +49,11 @@ fun CompactGameScreen(state: GameStateViewModel) {
         }
         Row(modifier = Modifier.weight(2f)) {
             PlayerStatusArea(
-                modifier = Modifier.weight(7f).fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxSize(),
                 playerState = state.currentPlayer
             )
             LogArea(
-                modifier = Modifier.weight(3f).fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxSize(),
                 logMessageState = state.logMessageState
             )
         }
@@ -62,19 +62,27 @@ fun CompactGameScreen(state: GameStateViewModel) {
 
 @Composable
 fun WideGameScreen(state: GameStateViewModel) {
-    Row {
-        Column(modifier = Modifier.weight(7f)) {
-            BoardArea(
-                modifier = Modifier.weight(1f),
-                stageState = state.currentStage,
-                cardsInEachRow = Params.CARDS_IN_EACH_ROW_WIDE,
-                rowsInBoard = state.currentStage.cards.size / Params.CARDS_IN_EACH_ROW_WIDE
-            ) {
-                state.onCardClick(card = it)
+    Column {
+        UtilityArea(
+            modifier = Modifier.fillMaxWidth(),
+            onEndTurnClick = { state.onEndTurnClick() },
+            onPauseClick = {},
+            onSettingClick = {}
+        )
+        Row {
+            Column(modifier = Modifier.weight(8f)) {
+                BoardArea(
+                    modifier = Modifier.weight(8f),
+                    stageState = state.currentStage,
+                    cardsInEachRow = Params.CARDS_IN_EACH_ROW_WIDE,
+                    rowsInBoard = state.currentStage.cards.size / Params.CARDS_IN_EACH_ROW_WIDE
+                ) {
+                    state.onCardClick(card = it)
+                }
+                PlayerStatusArea(modifier = Modifier.weight(2f), playerState = state.currentPlayer)
             }
-            PlayerStatusArea(playerState = state.currentPlayer)
+            LogArea(modifier = Modifier.weight(2f), logMessageState = state.logMessageState)
         }
-        LogArea(modifier = Modifier.weight(3f), logMessageState = state.logMessageState)
     }
 }
 
