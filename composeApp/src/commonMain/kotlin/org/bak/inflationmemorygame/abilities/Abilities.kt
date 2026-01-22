@@ -2,7 +2,7 @@ package org.bak.inflationmemorygame.abilities
 
 import inflationmemorygame.composeapp.generated.resources.Res
 import inflationmemorygame.composeapp.generated.resources.plus_one
-import org.bak.inflationmemorygame.params.MaxOccurrence
+import org.bak.inflationmemorygame.values.MaxOccurrence
 import org.jetbrains.compose.resources.DrawableResource
 
 enum class Abilities(

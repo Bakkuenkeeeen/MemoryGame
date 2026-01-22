@@ -20,7 +20,8 @@ class PlusOneAbility : EarnedAbility(actual = Abilities.PlusOne) {
     override fun onEarn(): OnAbilityEarnEffectHandler = object : OnAbilityEarnEffectHandler {
         override val priority: Int = EffectHandler.PRIORITY_DEFAULT
         override fun dispatch(param: OnAbilityEarnEffectHandler.Param) =
-            OnAbilityEarnEffectHandler.Result(
+            EffectHandler.Result(
+                abilityName = displayName,
                 gainedEffect = StatusEffect(
                     parentAbilityInstanceId = instanceId,
                     amount = 1,

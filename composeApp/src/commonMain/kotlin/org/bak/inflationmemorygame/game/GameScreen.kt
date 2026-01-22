@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.components.BoardArea
 import org.bak.inflationmemorygame.components.LogArea
 import org.bak.inflationmemorygame.isWindowWidthCompact
-import org.bak.inflationmemorygame.params.Params
+import org.bak.inflationmemorygame.values.Params
 
 @Composable
 fun GameScreen(state: GameStateViewModel = gameStateViewModel()) {

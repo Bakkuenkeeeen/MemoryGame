@@ -5,10 +5,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,7 +16,8 @@ import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
-import org.bak.inflationmemorygame.params.Params
+import org.bak.inflationmemorygame.values.LogMessages
+import org.bak.inflationmemorygame.values.Params
 
 class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
@@ -39,14 +36,12 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     private val additionalFlippedCards = mutableListOf<AbilityCard>()
 
-
     init {
         viewModelScope.launch { startStage() }
     }
 
     suspend fun startStage() {
-        logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}を生成中..."))
-        delay(5_000)
+        delay(3_000)
         if (currentStage.tryStartStage()) {
             logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
         } else {
@@ -56,6 +51,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
     }
 
     suspend fun startTurn() {
+        lockScreen()
         currentStage.incrementTurn()
         currentPlayer.clearFlippedCards()
         logMessageState.pushMessage(AnnotatedString("ターン ${currentStage.turns}"))
@@ -84,12 +80,12 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         handleAdditionalFlippedCard { unlockScreen() }
     }
 
-    private fun handleAdditionalFlippedCard(completion: () -> Unit) {
+    private suspend fun handleAdditionalFlippedCard(completion: () -> Unit) {
         val card = additionalFlippedCards.removeFirstOrNull()
         if (card == null) {
             completion()
         } else {
-
+            flipCard(card = card)
         }
     }
 
@@ -124,61 +120,74 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         }
     }
 
+    private fun flipCardByUserAsync(card: AbilityCard) {
+        viewModelScope.launch {
+            // プレイヤー操作によってめくられたカードとして処理
+            currentPlayer.addFlippedCard(card = card)
+            flipCard(card = card)
+        }
+    }
+
+    private suspend fun flipCard(card: AbilityCard) {
+        currentStage.flipCard(card = card)
+        logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
+
+        // TODO 自動拡大の設定がONなら、ダイアログ出してから
+
+        // カードをめくったとき(ペア判定前)の効果発動
+        // めくられたカード側
+        card.onCardFlip()?.dispatch(OnCardFlipEffectHandler.Param())
+        // TODO 獲得済み能力側
+        // currentPlayer.earnedAbilities.mapNotNull { it.onCardFlip() }.forEach {
+        //     it.dispatch(param = OnCardFlipEffectHandler.Param())
+        // }
+
+        // ペア成立判定
+        val matchedCard = currentPlayer.flippedCards.find {
+            // 同種の別カードで、かつ未獲得のカードを探す
+            card.displayName == it.displayName && card.instanceId != it.instanceId &&
+                    !it.isMatched
+        }
+        if (matchedCard == null) {
+            // TODO ペア不成立時の効果発動
+            // card.onPairUnmatch
+        } else {
+            // 盤面から除去
+            currentStage.onPairMatch(card = card, matchedCard = matchedCard)
+            // TODO ペア成立時の効果発動
+
+            // 能力獲得
+            val ability = card.onEarn()
+            currentPlayer.onAbilityEarn(ability = ability)
+            // 能力獲得時の効果発動
+            // 獲得した能力
+            ability.onEarn()?.let { handler ->
+                dispatchEffectHandler(
+                    handler,
+                    dispatcher = {
+                        it.dispatch(
+                            param = OnAbilityEarnEffectHandler.Param(earnedPlayer = currentPlayer)
+                        )
+                    }
+                )
+            }
+            // TODO 獲得前に持っていた能力
+            // currentPlayer.earnedAbilities.mapNotNull {
+            //     it.takeUnless { a -> a.instanceId == ability.instanceId }.onAnotherAbilityEarn()
+            // }.forEach { ... }
+        }
+        // TODO 一連の処理内で発動した効果によって表になったカードのペア成立判定
+        unlockScreen()
+    }
+
     fun onCardClick(card: AbilityCard) {
         // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
         if (card.isFaceUp) {
             // TODO 拡大表示
         } else if (currentPlayer.isFlippable) {
-            currentStage.flipCard(card = card)
-            currentPlayer.onFlip(card = card)
-            logMessageState.pushMessageAsync(buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(card.displayName)
-                }
-                append("を発見した")
-            })
-            // TODO 自動拡大の設定がONなら、ダイアログ出してから
-
-            // カードをめくったとき(ペア判定前)の効果発動
-            // めくられたカード側
-            card.onCardFlip()?.dispatch(OnCardFlipEffectHandler.Param())
-            // TODO 獲得済み能力側
-            // currentPlayer.earnedAbilities.mapNotNull { it.onCardFlip() }.forEach {
-            //     it.dispatch(param = OnCardFlipEffectHandler.Param())
-            // }
-
-            // ペア成立判定
-            val matchedCard = currentPlayer.flippedCards.find {
-                // 同種の別カードで、かつ未獲得のカードを探す
-                card.displayName == it.displayName && card.instanceId != it.instanceId &&
-                        !it.isMatched
-            }
-            if (matchedCard == null) {
-                // TODO ペア不成立時の効果発動
-                // card.onPairUnmatch
-            } else {
-                // 盤面から除去
-                currentStage.onPairMatch(card = card, matchedCard = matchedCard)
-                // TODO ペア成立時の効果発動
-
-                // 能力獲得
-                val ability = card.onEarn()
-                currentPlayer.onAbilityEarn(ability = ability)
-                // 能力獲得時の効果発動
-                // 獲得した能力
-                ability.onEarn()?.let { handler ->
-                    handler.dispatch(
-                        param = OnAbilityEarnEffectHandler.Param(earnedPlayer = currentPlayer)
-                    ).gainedEffect?.let { effect ->
-                        currentPlayer.onEffectGain(effect = effect)
-                    }
-                }
-                // TODO 獲得前に持っていた能力
-                // currentPlayer.earnedAbilities.mapNotNull {
-                //     it.takeUnless { a -> a.instanceId == ability.instanceId }.onAnotherAbilityEarn()
-                // }.forEach { ... }
-            }
-            // TODO 一連の処理内で発動した効果によって表になったカードのペア成立判定
+            // 連打抑止のため、同期的にUIを無効化
+            lockScreen()
+            flipCardByUserAsync(card = card)
         } else {
             logMessageState.pushMessageAsync(AnnotatedString("このターンは、もうめくれない"))
         }
@@ -216,16 +225,24 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         action: (R) -> Unit = {}
     ) {
         handlers.sortedBy { it.priority }.forEach { handler ->
-            val result = dispatcher(handler).also {
-                it.message?.let { message -> logMessageState.pushMessageAsync(message = message) }
-                it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
-                it.lostEffectParentInstanceIds.forEach { instanceId ->
-                    currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
-                }
-                additionalFlippedCards.addAll(it.additionalFlippedCards)
-            }
-            action(result)
+            dispatchEffectHandler(handler, dispatcher, action)
         }
+    }
+
+    private fun <T : EffectHandler, R : EffectHandler.Result> dispatchEffectHandler(
+        handler: T,
+        dispatcher: (T) -> R,
+        action: (R) -> Unit = {}
+    ) {
+        val result = dispatcher(handler).also {
+            it.message?.let { message -> logMessageState.pushMessageAsync(message = message) }
+            it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
+            it.lostEffectParentInstanceIds.forEach { instanceId ->
+                currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
+            }
+            additionalFlippedCards.addAll(it.additionalFlippedCards)
+        }
+        action(result)
     }
 }
 

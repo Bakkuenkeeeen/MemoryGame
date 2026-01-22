@@ -1,4 +1,4 @@
-package org.bak.inflationmemorygame.params
+package org.bak.inflationmemorygame.values
 
 object MaxOccurrence {
     /** 無制限. */

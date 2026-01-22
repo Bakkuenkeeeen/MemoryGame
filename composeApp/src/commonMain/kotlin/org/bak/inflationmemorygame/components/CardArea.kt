@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import inflationmemorygame.composeapp.generated.resources.Res
 import inflationmemorygame.composeapp.generated.resources.common_back
 import org.bak.inflationmemorygame.abilities.AbilityCard
-import org.bak.inflationmemorygame.params.Params
+import org.bak.inflationmemorygame.values.Params
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 

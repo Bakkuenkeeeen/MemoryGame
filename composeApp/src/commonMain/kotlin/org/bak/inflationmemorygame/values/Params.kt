@@ -1,4 +1,4 @@
-package org.bak.inflationmemorygame.params
+package org.bak.inflationmemorygame.values
 
 object Params {
     const val DEFAULT_FLIP_COUNT = 2

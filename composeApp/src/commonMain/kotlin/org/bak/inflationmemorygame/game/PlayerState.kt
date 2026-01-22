@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.StatusEffect
-import org.bak.inflationmemorygame.params.Params
+import org.bak.inflationmemorygame.values.Params
 
 @Stable
 class PlayerState {
@@ -41,7 +41,7 @@ class PlayerState {
     /** まだめくれるか. */
     val isFlippable: Boolean by derivedStateOf { flippedCount < maxFlipCount }
 
-    fun onFlip(card: AbilityCard) {
+    fun addFlippedCard(card: AbilityCard) {
         flippedCards.add(card)
     }
 

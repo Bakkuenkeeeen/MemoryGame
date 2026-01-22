@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="greeting">こんにちは、%1$sさん！</string>
-    <string name="start_effect">の効果が発動した</string>
-    <string name="end_effect">の効果が終了した</string>
 </resources>
