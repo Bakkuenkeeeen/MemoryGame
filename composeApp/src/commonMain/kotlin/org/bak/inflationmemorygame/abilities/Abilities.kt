@@ -1,6 +1,7 @@
 package org.bak.inflationmemorygame.abilities
 
 import inflationmemorygame.composeapp.generated.resources.Res
+import inflationmemorygame.composeapp.generated.resources.oikaze
 import inflationmemorygame.composeapp.generated.resources.plus_one
 import inflationmemorygame.composeapp.generated.resources.superhuman
 import org.bak.inflationmemorygame.values.AbilityText
@@ -8,7 +9,6 @@ import org.bak.inflationmemorygame.values.AbilityTexts
 import org.bak.inflationmemorygame.values.MaxOccurrence
 import org.bak.inflationmemorygame.values.MaxOccurrences
 import org.jetbrains.compose.resources.DrawableResource
-import kotlin.math.max
 
 enum class Abilities(
     text: AbilityText,
@@ -24,6 +24,11 @@ enum class Abilities(
         text = AbilityTexts.Superhuman,
         maxOccurrence = MaxOccurrences.Superhuman,
         image = Res.drawable.superhuman
+    ),
+    Oikaze(
+        text = AbilityTexts.Oikaze,
+        maxOccurrence = MaxOccurrences.Oikaze,
+        image = Res.drawable.oikaze
     )
     ;
 

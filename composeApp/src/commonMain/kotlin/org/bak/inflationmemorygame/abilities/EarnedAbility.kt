@@ -2,6 +2,7 @@ package org.bak.inflationmemorygame.abilities
 
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import kotlin.random.Random
@@ -23,8 +24,13 @@ abstract class EarnedAbility(val actual: Abilities) : Ability by actual {
     }
 
     abstract fun onEarn(): OnAbilityEarnEffectHandler?
+
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
+
+    abstract fun onPairMatch(): OnPairMatchEffectHandler?
+
     abstract fun onTurnEnd(): OnTurnEndEffectHandler?
+
     open fun onLost(): OnAbilityLostEffectHandler? {
         if (effectState == EffectState.Active) {
             return object : OnAbilityLostEffectHandler {

@@ -12,4 +12,6 @@ object Params {
 
     const val CARDS_IN_EACH_ROW_COMPACT = 5
     const val CARDS_IN_EACH_ROW_WIDE = 10
+
+    const val OIKAZE_AMOUNT = 1
 }

@@ -11,7 +11,8 @@ enum class MaxOccurrences(
 ) : MaxOccurrence {
 
     PlusOne(inStage = 6),
-    Superhuman(inStage = 2)
+    Superhuman(inStage = 2),
+    Oikaze(inStage = 2, inGame = 5)
     ;
 
     companion object {

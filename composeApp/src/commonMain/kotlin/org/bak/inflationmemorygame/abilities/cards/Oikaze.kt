@@ -10,34 +10,39 @@ import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.values.Params
 
-class SuperhumanCard : AbilityCard(actual = Abilities.Superhuman) {
+class OikazeCard : AbilityCard(actual = Abilities.Oikaze) {
     override fun onEarn(): EarnedAbility {
-        return SuperhumanAbility()
+        return OikazeAbility()
     }
 
     override fun onTurnStart(): OnTurnStartEffectHandler? = null
     override fun onCardFlip(): OnCardFlipEffectHandler? = null
 }
 
-class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
+class OikazeAbility : EarnedAbility(actual = Abilities.Oikaze) {
     override fun onEarn(): OnAbilityEarnEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Idle, to = EffectState.Ready)) {
-            println("次のターンに発動")
+            println("このターンから発動可能")
         }
         return null
     }
 
     override fun onTurnStart(): OnTurnStartEffectHandler? {
+        return null
+    }
+
+    override fun onPairMatch(): OnPairMatchEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {
-            return object : OnTurnStartEffectHandler {
-                override val priority: Int = OnTurnStartEffectHandler.PRIORITY_SUPERHUMAN
-                override fun dispatch(param: OnTurnStartEffectHandler.Param): EffectHandler.Result {
+            return object : OnPairMatchEffectHandler {
+                override val priority: Int = EffectHandler.PRIORITY_DEFAULT
+                override fun dispatch(param: OnPairMatchEffectHandler.Param): EffectHandler.Result {
                     return EffectHandler.Result(
                         abilityName = displayName,
                         gainedEffect = StatusEffect(
                             parentAbilityInstanceId = instanceId,
-                            amount = param.nextPlayer.maxFlipCount,
+                            amount = Params.OIKAZE_AMOUNT,
                             calculationType = StatusEffect.CalculationType.Add
                         )
                     )
@@ -47,10 +52,9 @@ class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
         return null
     }
 
-    override fun onPairMatch(): OnPairMatchEffectHandler? = null
-
     override fun onTurnEnd(): OnTurnEndEffectHandler? {
-        if (tryChangeEffectState(from = EffectState.Active, to = EffectState.End)) {
+        if (tryChangeEffectState(from = EffectState.Active, to = EffectState.Ready)) {
+            // このターン内に発動した効果をリセット
             return object : OnTurnEndEffectHandler {
                 override val priority: Int = EffectHandler.PRIORITY_DEFAULT
                 override fun dispatch(param: OnTurnEndEffectHandler.Param): EffectHandler.Result {
@@ -60,7 +64,8 @@ class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
                     )
                 }
             }
+        } else {
+            return null
         }
-        return null
     }
 }

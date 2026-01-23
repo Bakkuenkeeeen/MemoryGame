@@ -8,6 +8,10 @@ sealed interface AbilityText {
 enum class AbilityTexts(override val displayName: String, override val description: String) :
     AbilityText {
     PlusOne("プラスワン", "めくれる回数が1回増える。"),
-    Superhuman("超人化", "次のターン、めくれる回数が2倍になる。")
+    Superhuman("超人化", "次のターン、めくれる回数が2倍になる。"),
+    Oikaze(
+        "追い風",
+        "カードを揃えるたび、そのターン中にめくれる回数が${Params.OIKAZE_AMOUNT}回増える。"
+    )
     ;
 }

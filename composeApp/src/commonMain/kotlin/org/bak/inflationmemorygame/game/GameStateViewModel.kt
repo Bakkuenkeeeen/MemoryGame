@@ -17,6 +17,7 @@ import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.values.LogMessages
@@ -171,7 +172,21 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
             // 盤面から除去
             currentStage.onPairMatch(card = card, matchedCard = matchedCard)
             logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_MATCHED))
-            // TODO ペア成立時の効果発動
+            // ペア成立時の効果発動
+            // TODO 場札側
+            // 獲得済み能力側
+            dispatchAllEffectHandlersFromPlayer(
+                handler = { it.onPairMatch() },
+                dispatcher = {
+                    it.dispatch(
+                        param = OnPairMatchEffectHandler.Param(
+                            player = currentPlayer,
+                            flippedCard = card,
+                            matchedCard = matchedCard
+                        )
+                    )
+                }
+            )
 
             // 能力獲得
             val ability = card.onEarn()

@@ -8,6 +8,7 @@ import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.game.LogMessage
@@ -34,5 +35,6 @@ class PlusOneAbility : EarnedAbility(actual = Abilities.PlusOne) {
     }
 
     override fun onTurnStart(): OnTurnStartEffectHandler? = null
+    override fun onPairMatch(): OnPairMatchEffectHandler? = null
     override fun onTurnEnd(): OnTurnEndEffectHandler? = null
 }
