@@ -32,6 +32,7 @@ fun CompactGameScreen(state: GameStateViewModel) {
             enabled = state.isButtonsEnable,
             modifier = Modifier.fillMaxWidth(),
             onEndTurnClick = { state.onEndTurnClick() },
+            onAutoClick = { state.onAutoClick() },
             onPauseClick = {},
             onSettingClick = {}
         )
@@ -62,6 +63,7 @@ fun WideGameScreen(state: GameStateViewModel) {
             enabled = state.isButtonsEnable,
             modifier = Modifier.fillMaxWidth(),
             onEndTurnClick = { state.onEndTurnClick() },
+            onAutoClick = { state.onAutoClick() },
             onPauseClick = {},
             onSettingClick = {}
         )

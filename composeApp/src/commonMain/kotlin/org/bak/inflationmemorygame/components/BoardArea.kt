@@ -1,5 +1,6 @@
 package org.bak.inflationmemorygame.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,9 +14,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.game.StageState
+import org.bak.inflationmemorygame.values.BoardAreaBackground
 import kotlin.math.roundToInt
 
 @Composable
@@ -36,7 +39,7 @@ fun BoardArea(
         }
     }
     Column(
-        modifier = modifier.fillMaxSize().padding(all = 8.dp),
+        modifier = modifier.fillMaxSize().background(color = BoardAreaBackground).padding(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         repeat(rowsInBoard) { rowIndex ->

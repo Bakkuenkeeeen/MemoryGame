@@ -17,6 +17,7 @@ fun MenuButtonsArea(
     enabled: Boolean,
     modifier: Modifier = Modifier,
     onEndTurnClick: () -> Unit,
+    onAutoClick: () -> Unit,
     onPauseClick: () -> Unit,
     onSettingClick: () -> Unit
 ) {
@@ -28,6 +29,11 @@ fun MenuButtonsArea(
         Text(
             text = "ターン終了",
             modifier = Modifier.clickable(enabled = enabled, onClick = onEndTurnClick),
+            textDecoration = TextDecoration.Underline
+        )
+        Text(
+            text = "オートめくり",
+            modifier = Modifier.clickable(enabled = enabled, onClick = onAutoClick),
             textDecoration = TextDecoration.Underline
         )
     }

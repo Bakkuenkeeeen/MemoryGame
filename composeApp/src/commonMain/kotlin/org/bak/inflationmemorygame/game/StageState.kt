@@ -33,6 +33,7 @@ class StageState(val stage: Int = 1) {
                     }
                 })
             }
+            cards.shuffle()
             return true
         }
         return false

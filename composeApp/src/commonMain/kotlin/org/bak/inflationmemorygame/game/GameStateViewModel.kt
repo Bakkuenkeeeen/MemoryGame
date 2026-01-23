@@ -115,6 +115,24 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         }
     }
 
+    fun onAutoClick() {
+        // TODO 確認ダイアログ表示
+        lockScreen()
+        viewModelScope.launch {
+            while (true) {
+                val card = currentStage.cards.filter { !it.isFaceUp && !it.isMatched }
+                    .randomOrNull()?.takeIf { currentPlayer.isFlippable }
+                if (card == null) {
+                    break
+                } else {
+                    currentPlayer.addFlippedCard(card = card)
+                    flipCard(card)
+                }
+            }
+            unlockScreen()
+        }
+    }
+
     private fun endTurnAsync() {
         viewModelScope.launch {
             // ステージ効果発動
@@ -141,11 +159,11 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         viewModelScope.launch {
             // プレイヤー操作によってめくられたカードとして処理
             currentPlayer.addFlippedCard(card = card)
-            flipCard(card = card)
+            flipCard(card = card) { unlockScreen() }
         }
     }
 
-    private suspend fun flipCard(card: AbilityCard) {
+    private suspend fun flipCard(card: AbilityCard, completion: () -> Unit = {}) {
         currentStage.flipCard(card = card)
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
 
@@ -205,7 +223,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
             // }.forEach { ... }
         }
         // 一連の処理内で発動した効果によって新たに表になったカードがあれば、そのペア成立判定
-        handleAdditionalFlippedCard { unlockScreen() }
+        handleAdditionalFlippedCard(completion = completion)
     }
 
     fun onCardClick(card: AbilityCard) {
