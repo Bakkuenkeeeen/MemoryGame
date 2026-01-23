@@ -6,8 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
+import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.cards.PlusOneCard
+import org.bak.inflationmemorygame.abilities.cards.SuperhumanCard
 
 @Stable
 class StageState(val stage: Int = 1) {
@@ -19,12 +21,16 @@ class StageState(val stage: Int = 1) {
     /** 場札. */
     val cards = mutableStateListOf<AbilityCard>()
 
-    private var isStageStarted = false
-
     fun tryStartStage(): Boolean {
-        if (!isStageStarted) {
-            isStageStarted = true
-            cards.addAll(List(10) { PlusOneCard() })
+        if (cards.isEmpty()) {
+            Abilities.entries.forEach { ability ->
+                cards.addAll(List(ability.maxOccurrenceInStage * 2) {
+                    when (ability) {
+                        Abilities.PlusOne -> PlusOneCard()
+                        Abilities.Superhuman -> SuperhumanCard()
+                    }
+                })
+            }
             return true
         }
         return false

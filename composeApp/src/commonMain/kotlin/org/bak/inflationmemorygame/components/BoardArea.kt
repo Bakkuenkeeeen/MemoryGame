@@ -3,25 +3,38 @@ package org.bak.inflationmemorygame.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.game.StageState
+import kotlin.math.roundToInt
 
 @Composable
 fun BoardArea(
     modifier: Modifier = Modifier.Companion,
     stageState: StageState,
     cardsInEachRow: Int,
-    rowsInBoard: Int,
     onCardClick: (AbilityCard) -> Unit
 ) {
+    val rowsInBoard: Int by remember {
+        derivedStateOf {
+            val base = stageState.cards.size / cardsInEachRow
+            if (base * cardsInEachRow < stageState.cards.size) {
+                base + 1
+            } else {
+                base
+            }
+        }
+    }
     Column(
         modifier = modifier.fillMaxSize().padding(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -33,10 +46,14 @@ fun BoardArea(
             ) {
                 repeat(cardsInEachRow) { index ->
                     val card = remember(rowIndex, index) {
-                        stageState.cards[rowIndex * cardsInEachRow + index]
+                        stageState.cards.getOrNull(rowIndex * cardsInEachRow + index)
                     }
-                    CardArea(modifier = Modifier.weight(1f).fillMaxHeight(), card = card) {
-                        onCardClick(card)
+                    if (card == null) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    } else {
+                        CardArea(modifier = Modifier.weight(1f).fillMaxHeight(), card = card) {
+                            onCardClick(card)
+                        }
                     }
                 }
             }

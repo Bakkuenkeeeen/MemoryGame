@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +17,7 @@ import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.values.LogMessages
 import org.bak.inflationmemorygame.values.Params
@@ -33,6 +36,8 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
     }
 
     val logMessageState = LogMessageState(coroutineScope = viewModelScope)
+    var isButtonsEnable: Boolean by mutableStateOf(true)
+        private set
 
     private val additionalFlippedCards = mutableListOf<AbilityCard>()
 
@@ -91,12 +96,12 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     private fun lockScreen() {
         currentStage.disableAllCards()
-        // TODO ボタンも無効化
+        isButtonsEnable = false
     }
 
     private fun unlockScreen() {
         currentStage.enableAllCards()
-        // TODO ボタンも有効化
+        isButtonsEnable = true
     }
 
     fun onEndTurnClick() {
@@ -113,6 +118,17 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         viewModelScope.launch {
             // ステージ効果発動
             // 獲得済み能力の効果発動
+            dispatchAllEffectHandlersFromPlayer(
+                handler = { it.onTurnEnd() },
+                dispatcher = {
+                    it.dispatch(
+                        param = OnTurnEndEffectHandler.Param(
+                            stageState = currentStage,
+                            player = currentPlayer
+                        )
+                    )
+                }
+            )
             // TODO 表のままにしておくカードの制御
             currentStage.reverseAllCards()
             delay(Params.CARD_FLIP_ANIMATION_DURATION_MILLIS.toLong())
@@ -154,21 +170,18 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         } else {
             // 盤面から除去
             currentStage.onPairMatch(card = card, matchedCard = matchedCard)
+            logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_MATCHED))
             // TODO ペア成立時の効果発動
 
             // 能力獲得
             val ability = card.onEarn()
-            currentPlayer.onAbilityEarn(ability = ability)
+            currentPlayer.addAbility(ability = ability)
             // 能力獲得時の効果発動
             // 獲得した能力
             ability.onEarn()?.let { handler ->
                 dispatchEffectHandler(
                     handler,
-                    dispatcher = {
-                        it.dispatch(
-                            param = OnAbilityEarnEffectHandler.Param(earnedPlayer = currentPlayer)
-                        )
-                    }
+                    dispatcher = { it.dispatch(param = OnAbilityEarnEffectHandler.Param(earnedPlayer = currentPlayer)) }
                 )
             }
             // TODO 獲得前に持っていた能力
@@ -176,8 +189,8 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
             //     it.takeUnless { a -> a.instanceId == ability.instanceId }.onAnotherAbilityEarn()
             // }.forEach { ... }
         }
-        // TODO 一連の処理内で発動した効果によって表になったカードのペア成立判定
-        unlockScreen()
+        // 一連の処理内で発動した効果によって新たに表になったカードがあれば、そのペア成立判定
+        handleAdditionalFlippedCard { unlockScreen() }
     }
 
     fun onCardClick(card: AbilityCard) {

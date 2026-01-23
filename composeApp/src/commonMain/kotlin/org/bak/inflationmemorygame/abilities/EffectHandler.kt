@@ -17,13 +17,19 @@ interface EffectHandler {
         val lostEffectParentInstanceIds: List<Long> = emptyList(),
         val additionalFlippedCards: List<AbilityCard> = emptyList()
     ) {
+        /**
+         * 能力発動時用.
+         */
         constructor(abilityName: String, gainedEffect: StatusEffect) : this(
             message = LogMessage(abilityName, LogMessages.EFFECT_ACTIVATED),
             gainedEffects = listOf(gainedEffect)
         )
 
+        /**
+         * 能力喪失時用.
+         */
         constructor(abilityName: String, lostEffectParentInstanceId: Long) : this(
-            message = LogMessage(abilityName, LogMessages.EFFECT_ACTIVATED),
+            message = LogMessage(abilityName, LogMessages.EFFECT_END),
             lostEffectParentInstanceIds = listOf(lostEffectParentInstanceId)
         )
     }

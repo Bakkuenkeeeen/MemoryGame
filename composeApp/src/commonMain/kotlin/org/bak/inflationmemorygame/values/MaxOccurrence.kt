@@ -1,9 +1,21 @@
 package org.bak.inflationmemorygame.values
 
-object MaxOccurrence {
-    /** 無制限. */
-    const val NO_LIMIT = -1
+sealed interface MaxOccurrence {
+    val inStage: Int
+    val inGame: Int
+}
 
-    const val PLUS_ONE_IN_STAGE = 6
-    const val PLUS_ONE_IN_GAME = NO_LIMIT
+enum class MaxOccurrences(
+    override val inStage: Int,
+    override val inGame: Int = NO_LIMIT
+) : MaxOccurrence {
+
+    PlusOne(inStage = 6),
+    Superhuman(inStage = 2)
+    ;
+
+    companion object {
+        /** 無制限. */
+        const val NO_LIMIT = -1
+    }
 }

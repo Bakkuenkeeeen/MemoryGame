@@ -8,7 +8,10 @@ import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.game.LogMessage
+import org.bak.inflationmemorygame.values.LogMessages
 
 class PlusOneCard : AbilityCard(actual = Abilities.PlusOne) {
     override fun onEarn(): EarnedAbility = PlusOneAbility()
@@ -31,11 +34,5 @@ class PlusOneAbility : EarnedAbility(actual = Abilities.PlusOne) {
     }
 
     override fun onTurnStart(): OnTurnStartEffectHandler? = null
-    override fun onLost(): OnAbilityLostEffectHandler = object : OnAbilityLostEffectHandler {
-        override val priority: Int = EffectHandler.PRIORITY_DEFAULT
-        override fun dispatch(param: OnAbilityLostEffectHandler.Param) =
-            OnAbilityLostEffectHandler.Result(
-                removingEffectParentInstanceId = instanceId
-            )
-    }
+    override fun onTurnEnd(): OnTurnEndEffectHandler? = null
 }

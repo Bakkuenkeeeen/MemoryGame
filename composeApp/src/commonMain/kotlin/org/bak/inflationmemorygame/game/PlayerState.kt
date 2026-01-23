@@ -45,7 +45,7 @@ class PlayerState {
         flippedCards.add(card)
     }
 
-    fun onAbilityEarn(ability: EarnedAbility) {
+    fun addAbility(ability: EarnedAbility) {
         earnedAbilities.add(ability)
     }
 
