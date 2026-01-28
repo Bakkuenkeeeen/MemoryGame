@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import inflationmemorygame.composeapp.generated.resources.Res
 import inflationmemorygame.composeapp.generated.resources.common_back
 import org.bak.inflationmemorygame.abilities.AbilityCard
+import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.Params
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -32,7 +33,7 @@ private const val OFFSET_PX = -20f
 private val Shape = RoundedCornerShape(size = 8.dp)
 
 private val RotationAnimationSpec: AnimationSpec<Float> =
-    tween(durationMillis = Params.CARD_FLIP_ANIMATION_DURATION_MILLIS)
+    tween(durationMillis = Constants.CARD_FLIP_ANIMATION_DURATION_MILLIS)
 
 @Composable
 fun CardArea(
@@ -47,8 +48,8 @@ fun CardArea(
             var targetOffset by remember { mutableFloatStateOf(OFFSET_PX) }
             val animationSpec: AnimationSpec<Float> = remember(card.isMatched) {
                 tween(
-                    durationMillis = Params.CARD_APPEAR_ANIMATION_DURATION_MILLIS,
-                    delayMillis = if (card.isMatched) Params.MATCHED_CARD_DISAPPEAR_DELAY_MILLIS else 0
+                    durationMillis = Constants.CARD_APPEAR_ANIMATION_DURATION_MILLIS,
+                    delayMillis = if (card.isMatched) Constants.MATCHED_CARD_DISAPPEAR_DELAY_MILLIS else 0
                 )
             }
             val offset by animateFloatAsState(

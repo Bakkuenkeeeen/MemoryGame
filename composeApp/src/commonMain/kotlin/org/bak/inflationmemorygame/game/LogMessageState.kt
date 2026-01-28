@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.Params
 
 @Stable
@@ -21,7 +22,7 @@ class LogMessageState(private val coroutineScope: CoroutineScope) {
             for (message in queue) {
                 messages.add(message)
                 removeFirstMessageDelayed(coroutineScope)
-                delay(Params.MESSAGE_ADD_INTERVAL_IN_MILLIS_NORMAL)
+                delay(Constants.MESSAGE_ADD_INTERVAL_IN_MILLIS_NORMAL)
             }
         }
     }
@@ -52,7 +53,7 @@ class LogMessageState(private val coroutineScope: CoroutineScope) {
 
     private fun removeFirstMessageDelayed(coroutineScope: CoroutineScope) {
         coroutineScope.launch {
-            delay(Params.MESSAGE_DURATION_MILLIS_NORMAL)
+            delay(Constants.MESSAGE_DURATION_MILLIS_NORMAL)
             messages.removeFirst()
         }
     }

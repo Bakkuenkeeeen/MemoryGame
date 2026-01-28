@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.StatusEffect
+import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.Params
 
 @Stable
@@ -24,7 +25,7 @@ class PlayerState {
         val fixedValueEffects =
             statusEffects.filter { it.calculationType is StatusEffect.CalculationType.Fixed }
         if (fixedValueEffects.isEmpty()) {
-            Params.DEFAULT_FLIP_COUNT + statusEffects.sumOf { it.amount }
+            Constants.DEFAULT_FLIP_COUNT + statusEffects.sumOf { it.amount }
         } else {
             fixedValueEffects.maxByOrNull {
                 (it.calculationType as StatusEffect.CalculationType.Fixed).priority
