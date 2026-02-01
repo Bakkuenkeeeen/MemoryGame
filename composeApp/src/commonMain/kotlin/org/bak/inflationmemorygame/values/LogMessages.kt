@@ -6,4 +6,5 @@ object LogMessages {
     const val ABILITY_LOST = "を失った"
     const val EFFECT_ACTIVATED = "の効果が発動した"
     const val EFFECT_END = "の効果が切れた"
+    const val EFFECT_NOT_ACTIVATED = "の効果は発動しなかった"
 }

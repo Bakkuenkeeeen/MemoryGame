@@ -171,13 +171,16 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         // カードをめくったとき(ペア判定前)の効果発動
         // めくられたカード側
         card.onCardFlip()?.let {
-            it.dispatch(OnCardFlipEffectHandler.Param())
+            it.dispatch(OnCardFlipEffectHandler.Param(this, card))
             delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
         }
-        // TODO 獲得済み能力側
-        // currentPlayer.earnedAbilities.mapNotNull { it.onCardFlip() }.forEach {
-        //     it.dispatch(param = OnCardFlipEffectHandler.Param())
-        // }
+        // 獲得済み能力側
+        dispatchAllEffectHandlersFromPlayer(
+            handler = { it.onCardFlip() },
+            dispatcher = {
+                it.dispatch(param = OnCardFlipEffectHandler.Param(this, card))
+            }
+        )
 
         // ペア成立判定
         val matchedCard = currentPlayer.flippedCards.find {
@@ -247,6 +250,24 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
         }
     }
 
+    fun applyVisualEffect(
+        card: AbilityCard,
+        effect: AbilityCard.VisualEffects,
+        dismissDelayed: Boolean = true
+    ) {
+        card.applyVisualEffects(effect = effect)
+        if (dismissDelayed) {
+            dismissVisualEffectAsync(card)
+        }
+    }
+
+    fun dismissVisualEffectAsync(card: AbilityCard) {
+        viewModelScope.launch {
+            delay(Constants.FLASH_VISUAL_EFFECT_TOTAL_DURATION_MILLIS.toLong())
+            card.removeVisualEffects()
+        }
+    }
+
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromStage(
         stage: StageState = currentStage,
         handler: (AbilityCard) -> T?,
@@ -263,7 +284,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromPlayer(
         player: PlayerState = currentPlayer,
         handler: (EarnedAbility) -> T?,
-        dispatcher: (T) -> R,
+        dispatcher: suspend (T) -> R,
         action: suspend (R) -> Unit = {}
     ) {
         dispatchAllEffectHandlers(
@@ -275,7 +296,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlers(
         handlers: Collection<T>,
-        dispatcher: (T) -> R,
+        dispatcher: suspend (T) -> R,
         action: suspend (R) -> Unit = {}
     ) {
         handlers.sortedBy { it.priority }.forEach { handler ->
@@ -285,7 +306,7 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchEffectHandler(
         handler: T,
-        dispatcher: (T) -> R,
+        dispatcher: suspend (T) -> R,
         action: suspend (R) -> Unit = {}
     ) {
         val result = dispatcher(handler).also {

@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
+import org.bak.inflationmemorygame.abilities.cards.HiramekiCard
 import org.bak.inflationmemorygame.abilities.cards.OikazeCard
 import org.bak.inflationmemorygame.abilities.cards.PlusOneCard
 import org.bak.inflationmemorygame.abilities.cards.SuperhumanCard
@@ -30,6 +31,7 @@ class StageState(val stage: Int = 1) {
                         Abilities.PlusOne -> PlusOneCard()
                         Abilities.Superhuman -> SuperhumanCard()
                         Abilities.Oikaze -> OikazeCard()
+                        Abilities.Hirameki -> HiramekiCard()
                     }
                 })
             }

@@ -11,20 +11,15 @@ import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 
-class SuperhumanCard : AbilityCard(actual = Abilities.Superhuman) {
+class SuperhumanCard : AbilityCard.NoFieldEffect(actual = Abilities.Superhuman) {
     override fun onEarn(): EarnedAbility {
         return SuperhumanAbility()
     }
-
-    override fun onTurnStart(): OnTurnStartEffectHandler? = null
-    override fun onCardFlip(): OnCardFlipEffectHandler? = null
 }
 
 class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
     override fun onEarn(): OnAbilityEarnEffectHandler? {
-        if (tryChangeEffectState(from = EffectState.Idle, to = EffectState.Ready)) {
-            println("次のターンに発動")
-        }
+        changeEffectState(to = EffectState.Ready)
         return null
     }
 
@@ -47,6 +42,7 @@ class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
         return null
     }
 
+    override fun onCardFlip(): OnCardFlipEffectHandler? = null
     override fun onPairMatch(): OnPairMatchEffectHandler? = null
 
     override fun onTurnEnd(): OnTurnEndEffectHandler? {

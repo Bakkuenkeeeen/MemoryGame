@@ -12,26 +12,20 @@ import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.values.Params
 
-class OikazeCard : AbilityCard(actual = Abilities.Oikaze) {
+class OikazeCard : AbilityCard.NoFieldEffect(actual = Abilities.Oikaze) {
     override fun onEarn(): EarnedAbility {
         return OikazeAbility()
     }
-
-    override fun onTurnStart(): OnTurnStartEffectHandler? = null
-    override fun onCardFlip(): OnCardFlipEffectHandler? = null
 }
 
 class OikazeAbility : EarnedAbility(actual = Abilities.Oikaze) {
     override fun onEarn(): OnAbilityEarnEffectHandler? {
-        if (tryChangeEffectState(from = EffectState.Idle, to = EffectState.Ready)) {
-            println("このターンから発動可能")
-        }
+        changeEffectState(to = EffectState.Ready)
         return null
     }
 
-    override fun onTurnStart(): OnTurnStartEffectHandler? {
-        return null
-    }
+    override fun onTurnStart(): OnTurnStartEffectHandler? = null
+    override fun onCardFlip(): OnCardFlipEffectHandler? = null
 
     override fun onPairMatch(): OnPairMatchEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {

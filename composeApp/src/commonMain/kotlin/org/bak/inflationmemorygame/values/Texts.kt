@@ -12,6 +12,10 @@ enum class AbilityTexts(override val displayName: String, override val descripti
     Oikaze(
         "追い風",
         "カードを揃えるたび、そのターン中にめくれる回数が${Params.OIKAZE_AMOUNT}回増える。"
+    ),
+    Hirameki(
+        "ひらめき",
+        "次にめくるカードの相方の位置が分かる。"
     )
     ;
 }
