@@ -25,6 +25,7 @@ import kotlin.math.roundToInt
 fun BoardArea(
     modifier: Modifier = Modifier.Companion,
     stageState: StageState,
+    isPreloading: Boolean,
     cardsInEachRow: Int,
     onCardClick: (AbilityCard) -> Unit
 ) {
@@ -39,7 +40,8 @@ fun BoardArea(
         }
     }
     Column(
-        modifier = modifier.fillMaxSize().background(color = BoardAreaBackground).padding(all = 8.dp),
+        modifier = modifier.fillMaxSize().background(color = BoardAreaBackground)
+            .padding(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         repeat(rowsInBoard) { rowIndex ->
@@ -54,7 +56,11 @@ fun BoardArea(
                     if (card == null) {
                         Spacer(modifier = Modifier.weight(1f))
                     } else {
-                        CardArea(modifier = Modifier.weight(1f).fillMaxHeight(), card = card) {
+                        CardArea(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            card = card,
+                            animate = !isPreloading
+                        ) {
                             onCardClick(card)
                         }
                     }

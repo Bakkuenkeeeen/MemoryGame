@@ -14,3 +14,5 @@ actual fun getPlatform(): Platform = JVMPlatform()
 actual fun isWindowWidthCompact(): Boolean {
     return isRealWindowWidthCompact()
 }
+
+actual fun isPreloadNeeded(): Boolean = true // 本当は必要ないけど

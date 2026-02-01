@@ -11,3 +11,5 @@ expect fun getPlatform(): Platform
 
 @Composable
 expect fun isWindowWidthCompact(): Boolean
+
+expect fun isPreloadNeeded(): Boolean

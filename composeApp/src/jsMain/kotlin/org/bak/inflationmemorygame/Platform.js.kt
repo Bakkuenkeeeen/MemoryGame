@@ -13,3 +13,5 @@ actual fun getPlatform(): Platform = JsPlatform()
 actual fun isWindowWidthCompact(): Boolean {
     return isRealWindowWidthCompact()
 }
+
+actual fun isPreloadNeeded(): Boolean = true

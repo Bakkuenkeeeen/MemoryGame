@@ -20,10 +20,15 @@ import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.LogMessages
 
-class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
+class GameStateViewModel(
+    initialStage: Int,
+    playerCount: Int,
+    shouldPreload: Boolean = isPreloadNeeded()
+) : ViewModel() {
 
     private val stages = mutableStateListOf(StageState(stage = initialStage))
     private val players = mutableStateListOf<PlayerState>().apply {
@@ -42,17 +47,35 @@ class GameStateViewModel(initialStage: Int, playerCount: Int) : ViewModel() {
 
     private val additionalFlippedCards = mutableListOf<AbilityCard>()
 
+    var isPreloading by mutableStateOf(shouldPreload)
+        private set
+
     init {
-        viewModelScope.launch { startStage() }
+        viewModelScope.launch {
+            if (isPreloading) {
+                preload()
+            } else {
+                startStage()
+            }
+        }
+    }
+
+    private suspend fun preload() {
+        currentStage.cards.groupBy { it.displayName }.entries.forEach { (key, cards) ->
+            // 代表して1枚表にする
+            cards.firstOrNull()?.let {
+                it.changeSurface(isFaceUp = true)
+                delay(Constants.PRELOAD_INTERVAL)
+                it.changeSurface(isFaceUp = false)
+            }
+        }
+        delay(Constants.PRELOAD_INTERVAL)
+        isPreloading = false
+        startStage()
     }
 
     suspend fun startStage() {
-        delay(3_000)
-        if (currentStage.tryStartStage()) {
-            logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
-        } else {
-            logMessageState.pushMessage(AnnotatedString("すでにステージが生成されています"))
-        }
+        logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
         startTurn()
     }
 

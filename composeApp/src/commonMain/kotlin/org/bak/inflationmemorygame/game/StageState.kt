@@ -1,6 +1,5 @@
 package org.bak.inflationmemorygame.game
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -21,24 +20,18 @@ class StageState(val stage: Int = 1) {
         private set
 
     /** 場札. */
-    val cards = mutableStateListOf<AbilityCard>()
-
-    fun tryStartStage(): Boolean {
-        if (cards.isEmpty()) {
-            Abilities.entries.forEach { ability ->
-                cards.addAll(List(ability.maxOccurrenceInStage * 2) {
-                    when (ability) {
-                        Abilities.PlusOne -> PlusOneCard()
-                        Abilities.Superhuman -> SuperhumanCard()
-                        Abilities.Oikaze -> OikazeCard()
-                        Abilities.Hirameki -> HiramekiCard()
-                    }
-                })
-            }
-            cards.shuffle()
-            return true
+    val cards = mutableStateListOf<AbilityCard>().apply {
+        Abilities.entries.forEach { ability ->
+            addAll(List(ability.maxOccurrenceInStage * 2) {
+                when (ability) {
+                    Abilities.PlusOne -> PlusOneCard()
+                    Abilities.Superhuman -> SuperhumanCard()
+                    Abilities.Oikaze -> OikazeCard()
+                    Abilities.Hirameki -> HiramekiCard()
+                }
+            })
         }
-        return false
+        shuffle()
     }
 
     fun incrementTurn() {
@@ -69,9 +62,4 @@ class StageState(val stage: Int = 1) {
             }
         }
     }
-}
-
-@Composable
-fun rememberStageState(): StageState {
-    return StageState()
 }

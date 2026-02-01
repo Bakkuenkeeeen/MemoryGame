@@ -3,6 +3,7 @@ package org.bak.inflationmemorygame.values
 object Constants {
     const val DEFAULT_FLIP_COUNT = 2
 
+    const val PRELOAD_INTERVAL = 500L
     const val GAME_FLOW_INTERVAL_NORMAL = 300L
 
     const val MESSAGE_ADD_INTERVAL_IN_MILLIS_NORMAL = 500L

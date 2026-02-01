@@ -1,5 +1,7 @@
 package org.bak.inflationmemorygame
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
@@ -16,7 +18,9 @@ import inflationmemorygame.composeapp.generated.resources.NotoSansJP_Regular
 import inflationmemorygame.composeapp.generated.resources.NotoSansJP_SemiBold
 import inflationmemorygame.composeapp.generated.resources.NotoSansJP_Thin
 import inflationmemorygame.composeapp.generated.resources.Res
+import org.bak.inflationmemorygame.components.LoadingScreen
 import org.bak.inflationmemorygame.game.GameScreen
+import org.bak.inflationmemorygame.game.gameStateViewModel
 import org.jetbrains.compose.resources.Font
 
 @Composable
@@ -43,7 +47,11 @@ fun App() {
             )
         }
     } ?: MaterialTheme.typography) {
-        GameScreen()
+        val state = gameStateViewModel()
+        GameScreen(state = state)
+        AnimatedVisibility(visible = state.isPreloading, exit = fadeOut()) {
+            LoadingScreen()
+        }
     }
 }
 

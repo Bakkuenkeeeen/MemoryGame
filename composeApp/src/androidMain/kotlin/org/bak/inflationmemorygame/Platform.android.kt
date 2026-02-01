@@ -25,3 +25,5 @@ actual fun isWindowWidthCompact(): Boolean {
     }
     return isCompact
 }
+
+actual fun isPreloadNeeded(): Boolean = false

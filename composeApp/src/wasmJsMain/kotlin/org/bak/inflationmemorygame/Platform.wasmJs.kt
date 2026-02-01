@@ -14,3 +14,5 @@ actual fun getPlatform(): Platform = WasmPlatform()
 actual fun isWindowWidthCompact(): Boolean {
     return isRealWindowWidthCompact()
 }
+
+actual fun isPreloadNeeded(): Boolean = true
