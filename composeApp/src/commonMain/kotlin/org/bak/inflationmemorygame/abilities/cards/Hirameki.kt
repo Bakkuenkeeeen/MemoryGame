@@ -9,6 +9,7 @@ import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.components.VisualEffects
 import org.bak.inflationmemorygame.game.LogMessage
 import org.bak.inflationmemorygame.values.LogMessages
 
@@ -39,9 +40,10 @@ class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
                         LogMessage(displayName, LogMessages.EFFECT_NOT_ACTIVATED)
                     } else {
                         changeEffectState(to = EffectState.End)
-                        param.gameStateViewModel.applyVisualEffect(
-                            card = match,
-                            effect = AbilityCard.VisualEffects.Flash
+                        match.applyVisualEffects(
+                            effect = VisualEffects.Ripple {
+                                match.removeVisualEffects(effect = it)
+                            }
                         )
                         LogMessage(displayName, LogMessages.EFFECT_ACTIVATED)
                     }

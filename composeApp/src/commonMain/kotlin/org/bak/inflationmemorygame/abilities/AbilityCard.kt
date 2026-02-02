@@ -2,12 +2,12 @@ package org.bak.inflationmemorygame.abilities
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
-import org.bak.inflationmemorygame.values.Constants
+import org.bak.inflationmemorygame.components.VisualEffects
 import kotlin.random.Random
 
 @Stable
@@ -30,8 +30,7 @@ abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
     /** クリック可能かどうか. */
     var isInteractionEnabled: Boolean by mutableStateOf(true)
 
-    var visualEffect: VisualEffects? by mutableStateOf(null)
-        private set
+    val visualEffects = mutableStateListOf<VisualEffects>()
 
     fun changeSurface(isFaceUp: Boolean) {
         this.isFaceUp = isFaceUp
@@ -42,20 +41,16 @@ abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
     }
 
     fun applyVisualEffects(effect: VisualEffects) {
-        visualEffect = effect
+        visualEffects.add(effect)
     }
 
-    fun removeVisualEffects() {
-        visualEffect = null
+    fun removeVisualEffects(effect: VisualEffects) {
+        visualEffects.remove(effect)
     }
 
     abstract fun onEarn(): EarnedAbility
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
     abstract fun onCardFlip(): OnCardFlipEffectHandler?
-
-    sealed class VisualEffects {
-        data object Flash : VisualEffects()
-    }
 
     abstract class NoFieldEffect(actual: Abilities): AbilityCard(actual = actual) {
         override fun onTurnStart(): OnTurnStartEffectHandler? = null

@@ -10,7 +10,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
@@ -20,6 +22,7 @@ import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.components.VisualEffects
 import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.LogMessages
@@ -61,13 +64,13 @@ class GameStateViewModel(
     }
 
     private suspend fun preload() {
-        currentStage.cards.groupBy { it.displayName }.entries.forEach { (key, cards) ->
-            // 代表して1枚表にする
-            cards.firstOrNull()?.let {
-                it.changeSurface(isFaceUp = true)
-                delay(Constants.PRELOAD_INTERVAL)
-                it.changeSurface(isFaceUp = false)
-            }
+        // TODO
+        //  代表して1枚だけ表にすればいいと思っていたが、wasmだとロードしたカード以外が見えなくなる問題があり、
+        //  暫定で全てロードする
+        currentStage.cards.forEach { card ->
+            card.changeSurface(isFaceUp = true)
+            delay(Constants.PRELOAD_INTERVAL)
+            card.changeSurface(isFaceUp = false)
         }
         delay(Constants.PRELOAD_INTERVAL)
         isPreloading = false
@@ -76,6 +79,11 @@ class GameStateViewModel(
 
     suspend fun startStage() {
         logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
+        currentStage.cards.forEach { card ->
+            card.applyVisualEffects(
+                VisualEffects.Appear { card.removeVisualEffects(it) }
+            )
+        }
         startTurn()
     }
 
@@ -172,8 +180,21 @@ class GameStateViewModel(
                 }
             )
             // TODO 表のままにしておくカードの制御
-            currentStage.reverseAllCards()
-            delay(Constants.CARD_FLIP_ANIMATION_DURATION_MILLIS.toLong())
+            val waiters = currentStage.cards.filter { !it.isMatched && it.isFaceUp }.map { card ->
+                val wait = Job()
+                card.applyVisualEffects(
+                    effect = VisualEffects.Flip(
+                        isInitialFaceUp = true,
+                        onFaceChange = { card.changeSurface(isFaceUp = false) }
+                    ) {
+                        card.removeVisualEffects(effect = it)
+                        wait.complete()
+                    }
+                )
+                wait
+            }
+            waiters.joinAll()
+            // delay(Constants.FLIP_ANIMATION_DURATION_MILLIS.toLong())
             startTurn()
         }
     }
@@ -185,9 +206,20 @@ class GameStateViewModel(
     }
 
     private suspend fun flipCard(card: AbilityCard, completion: () -> Unit = {}) {
-        currentStage.flipCard(card = card)
+        val wait = Job()
+        card.applyVisualEffects(
+            effect = VisualEffects.Flip(
+                isInitialFaceUp = false,
+                onFaceChange = { card.changeSurface(isFaceUp = true) }
+            ) {
+                card.removeVisualEffects(effect = it)
+                wait.complete()
+            }
+        )
+        // currentStage.flipCard(card = card)
+        wait.join()
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
-        delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
+        // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
         // TODO 自動拡大の設定がONなら、ダイアログ出してから
 
@@ -216,9 +248,21 @@ class GameStateViewModel(
             // card.onPairUnmatch
         } else {
             // 盤面から除去
-            currentStage.onPairMatch(card = card, matchedCard = matchedCard)
+            val waiters = listOf(Job(), Job())
+            card.applyVisualEffects(effect = VisualEffects.Disappear {
+                card.removeVisualEffects(effect = it)
+                card.onMatch()
+                waiters[0].complete()
+            })
+            matchedCard.applyVisualEffects(effect = VisualEffects.Disappear {
+                matchedCard.removeVisualEffects(effect = it)
+                matchedCard.onMatch()
+                waiters[1].complete()
+            })
+            waiters.joinAll()
+            // currentStage.onPairMatch(card = card, matchedCard = matchedCard)
             logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_MATCHED))
-            delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
+            // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
             // ペア成立時の効果発動
             // TODO 場札側
@@ -270,24 +314,6 @@ class GameStateViewModel(
             }
         } else {
             logMessageState.pushMessageAsync(AnnotatedString("このターンは、もうめくれない"))
-        }
-    }
-
-    fun applyVisualEffect(
-        card: AbilityCard,
-        effect: AbilityCard.VisualEffects,
-        dismissDelayed: Boolean = true
-    ) {
-        card.applyVisualEffects(effect = effect)
-        if (dismissDelayed) {
-            dismissVisualEffectAsync(card)
-        }
-    }
-
-    fun dismissVisualEffectAsync(card: AbilityCard) {
-        viewModelScope.launch {
-            delay(Constants.FLASH_VISUAL_EFFECT_TOTAL_DURATION_MILLIS.toLong())
-            card.removeVisualEffects()
         }
     }
 

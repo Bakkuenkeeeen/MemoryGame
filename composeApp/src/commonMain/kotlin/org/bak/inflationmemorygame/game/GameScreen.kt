@@ -13,10 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.bak.inflationmemorygame.components.BoardArea
 import org.bak.inflationmemorygame.components.LogArea
-import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.isWindowWidthCompact
 import org.bak.inflationmemorygame.values.Constants
-import org.bak.inflationmemorygame.values.Params
 
 @Composable
 fun GameScreen(state: GameStateViewModel = gameStateViewModel()) {
@@ -41,7 +39,6 @@ fun CompactGameScreen(state: GameStateViewModel) {
         BoardArea(
             modifier = Modifier.fillMaxWidth().weight(8f),
             stageState = state.currentStage,
-            isPreloading = state.isPreloading,
             cardsInEachRow = Constants.CARDS_IN_EACH_ROW_COMPACT
         ) {
             state.onCardClick(card = it)
@@ -75,7 +72,6 @@ fun WideGameScreen(state: GameStateViewModel) {
                 BoardArea(
                     modifier = Modifier.weight(8f),
                     stageState = state.currentStage,
-                    isPreloading = state.isPreloading,
                     cardsInEachRow = Constants.CARDS_IN_EACH_ROW_WIDE
                 ) {
                     state.onCardClick(card = it)

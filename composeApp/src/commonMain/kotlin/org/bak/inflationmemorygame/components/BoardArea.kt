@@ -14,18 +14,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.game.StageState
-import org.bak.inflationmemorygame.values.BoardAreaBackground
-import kotlin.math.roundToInt
+import org.bak.inflationmemorygame.values.Colors
 
 @Composable
 fun BoardArea(
     modifier: Modifier = Modifier.Companion,
     stageState: StageState,
-    isPreloading: Boolean,
     cardsInEachRow: Int,
     onCardClick: (AbilityCard) -> Unit
 ) {
@@ -40,7 +37,7 @@ fun BoardArea(
         }
     }
     Column(
-        modifier = modifier.fillMaxSize().background(color = BoardAreaBackground)
+        modifier = modifier.fillMaxSize().background(color = Colors.BoardAreaBackground)
             .padding(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -58,8 +55,7 @@ fun BoardArea(
                     } else {
                         CardArea(
                             modifier = Modifier.weight(1f).fillMaxHeight(),
-                            card = card,
-                            animate = !isPreloading
+                            card = card
                         ) {
                             onCardClick(card)
                         }

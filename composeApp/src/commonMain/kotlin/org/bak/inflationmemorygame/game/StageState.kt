@@ -31,7 +31,7 @@ class StageState(val stage: Int = 1) {
                 }
             })
         }
-        shuffle()
+        //shuffle()
     }
 
     fun incrementTurn() {
