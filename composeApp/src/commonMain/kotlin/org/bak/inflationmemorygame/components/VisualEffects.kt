@@ -7,23 +7,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.bak.inflationmemorygame.values.Colors
 
-sealed class VisualEffects(private val completion: (VisualEffects) -> Unit) {
+sealed class VisualEffects(private val completion: MutableList<(VisualEffects) -> Unit>) {
+
+    fun addCallback(completion: (VisualEffects) -> Unit) {
+        this.completion.add(completion)
+    }
+
     fun onComplete() {
-        completion(this)
+        completion.forEach { it(this) }
     }
 
     @Stable
-    class Appear(completion: (VisualEffects) -> Unit) : VisualEffects(completion)
+    class Appear(completion: (VisualEffects) -> Unit = {}) :
+        VisualEffects(mutableListOf(completion))
 
     @Stable
-    class Disappear(completion: (VisualEffects) -> Unit) : VisualEffects(completion)
+    class Disappear(completion: (VisualEffects) -> Unit = {}) :
+        VisualEffects(mutableListOf(completion))
 
     @Stable
     class Flip(
         val isInitialFaceUp: Boolean,
         private val onFaceChange: () -> Unit,
-        completion: (VisualEffects) -> Unit
-    ) : VisualEffects(completion) {
+        completion: (VisualEffects) -> Unit = {}
+    ) : VisualEffects(mutableListOf(completion)) {
         fun onFaceChange() {
             onFaceChange.invoke()
         }
@@ -32,8 +39,8 @@ sealed class VisualEffects(private val completion: (VisualEffects) -> Unit) {
     @Stable
     class Ripple(
         val color: Color = Colors.FlashColor,
-        completion: (VisualEffects) -> Unit
-    ) : VisualEffects(completion)
+        completion: (VisualEffects) -> Unit = {}
+    ) : VisualEffects(mutableListOf(completion))
 }
 
 @Composable

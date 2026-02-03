@@ -40,10 +40,10 @@ class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
                         LogMessage(displayName, LogMessages.EFFECT_NOT_ACTIVATED)
                     } else {
                         changeEffectState(to = EffectState.End)
-                        match.applyVisualEffects(
-                            effect = VisualEffects.Ripple {
-                                match.removeVisualEffects(effect = it)
-                            }
+                        param.gameStateViewModel.applyOneTimeVisualEffects(
+                            card = match,
+                            effect = VisualEffects.Ripple(),
+                            awaitCompletion = false
                         )
                         LogMessage(displayName, LogMessages.EFFECT_ACTIVATED)
                     }

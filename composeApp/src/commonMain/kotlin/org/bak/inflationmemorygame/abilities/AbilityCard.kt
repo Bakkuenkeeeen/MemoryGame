@@ -52,7 +52,7 @@ abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
     abstract fun onCardFlip(): OnCardFlipEffectHandler?
 
-    abstract class NoFieldEffect(actual: Abilities): AbilityCard(actual = actual) {
+    abstract class NoFieldEffect(actual: Abilities) : AbilityCard(actual = actual) {
         override fun onTurnStart(): OnTurnStartEffectHandler? = null
         override fun onCardFlip(): OnCardFlipEffectHandler? = null
     }

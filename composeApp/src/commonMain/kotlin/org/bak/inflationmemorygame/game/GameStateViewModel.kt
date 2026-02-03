@@ -80,8 +80,10 @@ class GameStateViewModel(
     suspend fun startStage() {
         logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
         currentStage.cards.forEach { card ->
-            card.applyVisualEffects(
-                VisualEffects.Appear { card.removeVisualEffects(it) }
+            applyOneTimeVisualEffects(
+                card = card,
+                effect = VisualEffects.Appear(),
+                awaitCompletion = false
             )
         }
         startTurn()
@@ -181,17 +183,16 @@ class GameStateViewModel(
             )
             // TODO 表のままにしておくカードの制御
             val waiters = currentStage.cards.filter { !it.isMatched && it.isFaceUp }.map { card ->
-                val wait = Job()
-                card.applyVisualEffects(
-                    effect = VisualEffects.Flip(
-                        isInitialFaceUp = true,
-                        onFaceChange = { card.changeSurface(isFaceUp = false) }
-                    ) {
-                        card.removeVisualEffects(effect = it)
-                        wait.complete()
-                    }
-                )
-                wait
+                viewModelScope.launch {
+                    applyOneTimeVisualEffects(
+                        card = card,
+                        effect = VisualEffects.Flip(
+                            isInitialFaceUp = true,
+                            onFaceChange = { card.changeSurface(isFaceUp = false) }
+                        ),
+                        awaitCompletion = true
+                    )
+                }
             }
             waiters.joinAll()
             // delay(Constants.FLIP_ANIMATION_DURATION_MILLIS.toLong())
@@ -206,20 +207,15 @@ class GameStateViewModel(
     }
 
     private suspend fun flipCard(card: AbilityCard, completion: () -> Unit = {}) {
-        val wait = Job()
-        card.applyVisualEffects(
+        applyOneTimeVisualEffects(
+            card = card,
             effect = VisualEffects.Flip(
                 isInitialFaceUp = false,
                 onFaceChange = { card.changeSurface(isFaceUp = true) }
-            ) {
-                card.removeVisualEffects(effect = it)
-                wait.complete()
-            }
+            ),
+            awaitCompletion = true
         )
-        // currentStage.flipCard(card = card)
-        wait.join()
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
-        // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
         // TODO 自動拡大の設定がONなら、ダイアログ出してから
 
@@ -248,16 +244,20 @@ class GameStateViewModel(
             // card.onPairUnmatch
         } else {
             // 盤面から除去
-            val waiters = listOf(Job(), Job())
-            card.applyVisualEffects(effect = VisualEffects.Disappear {
-                card.removeVisualEffects(effect = it)
-                card.onMatch()
-                waiters[0].complete()
+            val waiters = mutableListOf<Job>()
+            waiters.add(viewModelScope.launch {
+                applyOneTimeVisualEffects(
+                    card = card,
+                    effect = VisualEffects.Disappear { card.onMatch() },
+                    awaitCompletion = true
+                )
             })
-            matchedCard.applyVisualEffects(effect = VisualEffects.Disappear {
-                matchedCard.removeVisualEffects(effect = it)
-                matchedCard.onMatch()
-                waiters[1].complete()
+            waiters.add(viewModelScope.launch {
+                applyOneTimeVisualEffects(
+                    card = matchedCard,
+                    effect = VisualEffects.Disappear { matchedCard.onMatch() },
+                    awaitCompletion = true
+                )
             })
             waiters.joinAll()
             // currentStage.onPairMatch(card = card, matchedCard = matchedCard)
@@ -368,6 +368,22 @@ class GameStateViewModel(
         }
         action(result)
         delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
+    }
+
+    suspend fun applyOneTimeVisualEffects(
+        card: AbilityCard,
+        effect: VisualEffects,
+        awaitCompletion: Boolean
+    ) {
+        effect.addCallback { card.removeVisualEffects(effect) }
+        if (awaitCompletion) {
+            val job = Job()
+            effect.addCallback { job.complete() }
+            card.applyVisualEffects(effect)
+            job.join()
+        } else {
+            card.applyVisualEffects(effect)
+        }
     }
 }
 
