@@ -34,8 +34,8 @@ private fun BoxScope.RippleVisualEffect(effect: VisualEffects.Ripple) {
     val fraction by animateFloatAsState(
         targetValue = targetValue(from = 0f, to = 1f),
         animationSpec = repeatable(
-            iterations = Constants.FLASH_VISUAL_EFFECT_TOTAL_COUNT,
-            animation = tween(durationMillis = Constants.FLASH_VISUAL_EFFECT_EACH_DURATION_MILLIS)
+            iterations = Constants.VISUAL_EFFECT_RIPPLE_TOTAL_COUNT,
+            animation = tween(durationMillis = Constants.VISUAL_EFFECT_RIPPLE_EACH_DURATION_MILLIS)
         )
     ) {
         effect.onComplete()

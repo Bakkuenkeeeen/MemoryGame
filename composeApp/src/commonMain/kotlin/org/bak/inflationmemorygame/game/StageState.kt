@@ -38,28 +38,11 @@ class StageState(val stage: Int = 1) {
         turns++
     }
 
-    fun flipCard(card: AbilityCard) {
-        card.changeSurface(isFaceUp = true)
-    }
-
-    fun onPairMatch(card: AbilityCard, matchedCard: AbilityCard) {
-        card.onMatch()
-        matchedCard.onMatch()
-    }
-
     fun enableAllCards() {
         cards.forEach { it.isInteractionEnabled = true }
     }
 
     fun disableAllCards() {
         cards.forEach { it.isInteractionEnabled = false }
-    }
-
-    fun reverseAllCards(exclude: List<AbilityCard> = emptyList()) {
-        cards.forEach { card ->
-            if (!card.isMatched || !exclude.contains(card)) {
-                card.changeSurface(isFaceUp = false)
-            }
-        }
     }
 }

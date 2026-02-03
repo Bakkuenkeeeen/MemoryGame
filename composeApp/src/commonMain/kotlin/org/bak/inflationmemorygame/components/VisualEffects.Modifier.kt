@@ -40,28 +40,28 @@ fun Modifier.visualEffects(effects: List<VisualEffects>): Modifier {
 @Composable
 private fun Modifier.appear(effect: VisualEffects.Appear): Modifier {
     val offset by animateFloatAsState(
-        targetValue = targetValue(from = Constants.APPEAR_ANIMATION_INITIAL_OFFSET_PX, to = 0f),
-        animationSpec = tween(Constants.APPEAR_ANIMATION_DURATION_MILLIS)
+        targetValue = targetValue(from = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX, to = 0f),
+        animationSpec = tween(Constants.VISUAL_EFFECT_APPEAR_DURATION_MILLIS)
     ) {
         effect.onComplete()
     }
     return graphicsLayer {
         translationY = offset
-        alpha = 1f - (offset / Constants.APPEAR_ANIMATION_INITIAL_OFFSET_PX).coerceIn(0f, 1f)
+        alpha = 1f - (offset / Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX).coerceIn(0f, 1f)
     }
 }
 
 @Composable
 private fun Modifier.disappear(effect: VisualEffects.Disappear): Modifier {
     val offset by animateFloatAsState(
-        targetValue = targetValue(from = 0f, to = Constants.APPEAR_ANIMATION_INITIAL_OFFSET_PX),
-        animationSpec = tween(Constants.APPEAR_ANIMATION_DURATION_MILLIS)
+        targetValue = targetValue(from = 0f, to = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX),
+        animationSpec = tween(Constants.VISUAL_EFFECT_APPEAR_DURATION_MILLIS)
     ) {
         effect.onComplete()
     }
     return graphicsLayer {
         translationY = offset
-        alpha = 1f - (offset / Constants.APPEAR_ANIMATION_INITIAL_OFFSET_PX).coerceIn(0f, 1f)
+        alpha = 1f - (offset / Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX).coerceIn(0f, 1f)
     }
 }
 
@@ -74,7 +74,7 @@ private fun Modifier.flip(effect: VisualEffects.Flip): Modifier {
     }
     val rotation by animateFloatAsState(
         targetValue = targetValue,
-        animationSpec = tween(Constants.FLIP_ANIMATION_DURATION_MILLIS)
+        animationSpec = tween(Constants.VISUAL_EFFECT_FLIP_DURATION_MILLIS)
     ) {
         effect.onComplete()
     }
