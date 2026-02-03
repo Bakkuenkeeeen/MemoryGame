@@ -2,9 +2,13 @@ package org.bak.inflationmemorygame
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +23,7 @@ import inflationmemorygame.composeapp.generated.resources.NotoSansJP_SemiBold
 import inflationmemorygame.composeapp.generated.resources.NotoSansJP_Thin
 import inflationmemorygame.composeapp.generated.resources.Res
 import org.bak.inflationmemorygame.components.LoadingScreen
+import org.bak.inflationmemorygame.dialogs.Dialogs
 import org.bak.inflationmemorygame.game.GameScreen
 import org.bak.inflationmemorygame.game.gameStateViewModel
 import org.jetbrains.compose.resources.Font
@@ -47,10 +52,14 @@ fun App() {
             )
         }
     } ?: MaterialTheme.typography) {
-        val state = gameStateViewModel()
-        GameScreen(state = state)
-        AnimatedVisibility(visible = state.isPreloading, exit = fadeOut()) {
-            LoadingScreen()
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            val state = gameStateViewModel()
+            GameScreen(modifier = Modifier.padding(innerPadding), state = state)
+            AnimatedVisibility(visible = state.isPreloading, exit = fadeOut()) {
+                LoadingScreen(modifier = Modifier.padding(innerPadding))
+            }
+            // ダイアログは全画面表示のためinnerPaddingは使わない
+            Dialogs(dialogs = state.dialogs)
         }
     }
 }

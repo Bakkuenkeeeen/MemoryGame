@@ -17,20 +17,20 @@ import org.bak.inflationmemorygame.isWindowWidthCompact
 import org.bak.inflationmemorygame.values.Constants
 
 @Composable
-fun GameScreen(state: GameStateViewModel = gameStateViewModel()) {
+fun GameScreen(modifier: Modifier = Modifier, state: GameStateViewModel = gameStateViewModel()) {
     if (isWindowWidthCompact()) {
-        CompactGameScreen(state = state)
+        CompactGameScreen(modifier = modifier, state = state)
     } else {
-        WideGameScreen(state = state)
+        WideGameScreen(modifier = modifier, state = state)
     }
 }
 
 @Composable
-fun CompactGameScreen(state: GameStateViewModel) {
-    Column {
+fun CompactGameScreen(modifier: Modifier = Modifier, state: GameStateViewModel) {
+    Column(modifier = modifier) {
         MenuButtonsArea(
             enabled = state.isButtonsEnable,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             onEndTurnClick = { state.onEndTurnClick() },
             onAutoClick = { state.onAutoClick() },
             onPauseClick = {},
@@ -57,8 +57,8 @@ fun CompactGameScreen(state: GameStateViewModel) {
 }
 
 @Composable
-fun WideGameScreen(state: GameStateViewModel) {
-    Column {
+fun WideGameScreen(modifier: Modifier = Modifier, state: GameStateViewModel) {
+    Column(modifier = modifier) {
         MenuButtonsArea(
             enabled = state.isButtonsEnable,
             modifier = Modifier.fillMaxWidth(),

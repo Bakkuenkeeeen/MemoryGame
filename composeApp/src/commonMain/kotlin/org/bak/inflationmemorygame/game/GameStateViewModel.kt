@@ -23,6 +23,7 @@ import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.components.VisualEffects
+import org.bak.inflationmemorygame.dialogs.Dialogs
 import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.LogMessages
@@ -52,6 +53,9 @@ class GameStateViewModel(
 
     var isPreloading by mutableStateOf(shouldPreload)
         private set
+
+    private val discoveredCards = mutableSetOf<String>()
+    val dialogs = mutableStateListOf<Dialogs>()
 
     init {
         viewModelScope.launch {
@@ -217,7 +221,15 @@ class GameStateViewModel(
         )
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
 
-        // TODO 自動拡大の設定がONなら、ダイアログ出してから
+        // TODO 自動拡大の設定を確認
+        val waitDialog = Job()
+        if (discoveredCards.add(card.displayName)) {
+            dialogs.add(Dialogs.CardDetail(card = card) {
+                dialogs.remove(it)
+                waitDialog.complete()
+            })
+            waitDialog.join()
+        }
 
         // カードをめくったとき(ペア判定前)の効果発動
         // めくられたカード側
@@ -305,7 +317,7 @@ class GameStateViewModel(
     fun onCardClick(card: AbilityCard) {
         // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
         if (card.isFaceUp) {
-            // TODO 拡大表示
+            dialogs.add(Dialogs.CardDetail(card = card) { dialogs.remove(it) })
         } else if (currentPlayer.isFlippable) {
             // 連打抑止のため、同期的にUIを無効化
             lockScreen()
