@@ -55,7 +55,7 @@ class GameStateViewModel(
         private set
 
     private val discoveredCards = mutableSetOf<String>()
-    val dialogs = mutableStateListOf<Dialogs>()
+    val dialogs = mutableStateListOf<Dialogs<*>>()
 
     init {
         viewModelScope.launch {
@@ -82,6 +82,8 @@ class GameStateViewModel(
     }
 
     suspend fun startStage() {
+        // 溜まったダイアログのスタックをクリア
+        dialogs.clear()
         logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
         currentStage.cards.forEach { card ->
             applyOneTimeVisualEffects(
@@ -145,11 +147,9 @@ class GameStateViewModel(
     fun onEndTurnClick() {
         // 連打抑止のため、同期的にUIを無効化
         lockScreen()
-        viewModelScope.launch { 
+        viewModelScope.launch {
             val shouldEnd = if (currentPlayer.isFlippable) {
-                Dialogs.ConfirmEndTurn { dialogs.remove(it) }
-                    .also { dialogs.add(it) }
-                    .result.await()
+                Dialogs.ConfirmEndTurn().also { dialogs.add(it) }.awaitDismiss()
             } else {
                 true
             }
@@ -230,9 +230,9 @@ class GameStateViewModel(
 
         // TODO 自動拡大の設定を確認
         if (discoveredCards.add(card.displayName)) {
-            val dialog = Dialogs.CardDetail(card = card) { dialogs.remove(it) }
+            val dialog = Dialogs.CardDetail(card = card)
             dialogs.add(dialog)
-            dialog.result.join()
+            dialog.awaitDismiss()
         }
 
         // カードをめくったとき(ペア判定前)の効果発動
@@ -321,7 +321,7 @@ class GameStateViewModel(
     fun onCardClick(card: AbilityCard) {
         // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
         if (card.isFaceUp) {
-            dialogs.add(Dialogs.CardDetail(card = card) { dialogs.remove(it) })
+            dialogs.add(Dialogs.CardDetail(card = card))
         } else if (currentPlayer.isFlippable) {
             // 連打抑止のため、同期的にUIを無効化
             lockScreen()

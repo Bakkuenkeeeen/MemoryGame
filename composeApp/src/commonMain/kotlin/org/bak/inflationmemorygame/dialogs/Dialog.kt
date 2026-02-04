@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,52 +25,61 @@ import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_messa
 import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_title
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import org.bak.inflationmemorygame.abilities.Ability
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.util.targetValue
 
-sealed class Dialogs {
-    abstract val result: Job
-    open fun onDismissRequest() {
+@Stable
+sealed class Dialogs<TResult> {
+
+    var isActive: Boolean by mutableStateOf(true)
+        protected set
+
+    fun dismiss(result: TResult? = null) {
+        isActive = false
+        setResult(result = result)
     }
 
-    @Immutable
-    class CardDetail(
-        val card: AbilityCard,
-        private val onDismissRequest: (CardDetail) -> Unit
-    ) : Dialogs() {
-        private val mResult: CompletableJob = Job()
-        override val result: Job get() = mResult
-        override fun onDismissRequest() {
-            onDismissRequest.invoke(this)
-            mResult.complete()
+    protected abstract fun setResult(result: TResult?)
+    abstract suspend fun awaitDismiss(): TResult
+
+    sealed class NoResult : Dialogs<Unit>() {
+        private val result: CompletableJob = Job()
+
+        override fun setResult(result: Unit?) {
+            this.result.complete()
+        }
+
+        override suspend fun awaitDismiss() {
+            result.join()
         }
     }
 
-    @Immutable
-    class ConfirmEndTurn(
-        private val onDismissRequest: (ConfirmEndTurn) -> Unit
-    ) : Dialogs() {
-        private val mResult = CompletableDeferred<Boolean>()
-        override val result: Deferred<Boolean> get() = mResult
-        override fun onDismissRequest() {
-            onDismissRequest.invoke(this)
-            mResult.complete(value = false)
+    sealed class WithResult<TResult> : Dialogs<TResult>() {
+        protected val result = CompletableDeferred<TResult>()
+        protected abstract val defaultValue: TResult
+
+        override fun setResult(result: TResult?) {
+            this.result.complete(value = result ?: defaultValue)
         }
 
-        fun onConfirm() {
-            onDismissRequest.invoke(this)
-            mResult.complete(value = true)
+        override suspend fun awaitDismiss(): TResult {
+            return result.await()
         }
+    }
+
+    class CardDetail(card: AbilityCard) : NoResult(), Ability by card
+    class ConfirmEndTurn : WithResult<Boolean>() {
+        override val defaultValue: Boolean = false
     }
 }
 
 @Composable
-fun Dialogs(dialogs: List<Dialogs>) {
+fun Dialogs(dialogs: List<Dialogs<*>>) {
     dialogs.forEach { dialog ->
         AnimatedVisibility(
-            visible = targetValue(from = false, to = true),
+            visible = targetValue(from = false, to = true) && dialog.isActive,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -77,7 +89,7 @@ fun Dialogs(dialogs: List<Dialogs>) {
 }
 
 @Composable
-private fun DialogLayer(dialog: Dialogs) {
+private fun DialogLayer(dialog: Dialogs<*>) {
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
@@ -85,7 +97,7 @@ private fun DialogLayer(dialog: Dialogs) {
             .background(color = Color.Gray.copy(alpha = 0.75f))
             .safeDrawingPadding()
             .clickable(interactionSource = interactionSource, indication = null) {
-                dialog.onDismissRequest()
+                dialog.dismiss(result = null)
             }
     ) {
         Dialog(
@@ -99,15 +111,21 @@ private fun DialogLayer(dialog: Dialogs) {
 }
 
 @Composable
-private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs) {
+private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs<*>) {
     when (dialog) {
-        is Dialogs.CardDetail -> CardDetailDialog(modifier = modifier, ability = dialog.card)
+        is Dialogs.CardDetail -> CardDetailDialog(
+            modifier = modifier,
+            abilityImage = dialog.image,
+            abilityName = dialog.displayName,
+            abilityDescription = dialog.description
+        )
+
         is Dialogs.ConfirmEndTurn -> ConfirmDialog(
             modifier = modifier,
             title = Res.string.confirm_end_turn_title,
             message = Res.string.confirm_end_turn_message,
-            onConfirm = { dialog.onConfirm() },
-            onCancel = { dialog.onDismissRequest() }
+            onConfirm = { dialog.dismiss(result = true) },
+            onCancel = { dialog.dismiss(result = false) }
         )
     }
 }

@@ -17,20 +17,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.bak.inflationmemorygame.abilities.Ability
 import org.bak.inflationmemorygame.components.cardShape
 import org.bak.inflationmemorygame.isWindowWidthCompact
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun CardDetailDialog(modifier: Modifier, ability: Ability) {
+fun CardDetailDialog(
+    modifier: Modifier,
+    abilityImage: DrawableResource,
+    abilityName: String,
+    abilityDescription: String
+) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         if (!isWindowWidthCompact()) {
             Spacer(modifier = Modifier.weight(0.5f))
         }
         Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Image(
-                painter = painterResource(ability.image),
+                painter = painterResource(abilityImage),
                 contentDescription = null,
                 modifier = Modifier.aspectRatio(0.5f).cardShape().align(Alignment.Center)
             )
@@ -42,13 +47,13 @@ fun CardDetailDialog(modifier: Modifier, ability: Ability) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = ability.displayName,
+                text = abilityName,
                 fontSize = 18.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = ability.description,
+                text = abilityDescription,
                 fontSize = 16.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
