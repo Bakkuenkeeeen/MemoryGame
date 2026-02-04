@@ -3,6 +3,9 @@
     <string name="greeting">こんにちは、%1$sさん！</string>
     <string name="confirm_end_turn_title">まだ、カードをめくれます</string>
     <string name="confirm_end_turn_message">ターンを終了しますか？</string>
+    <string name="confirm_auto_flip_title">このターン、自動でめくり続けます</string>
+    <string name="confirm_auto_flip_message">オートめくりを開始しますか？</string>
     <string name="confirm_dialog_ok">OK</string>
     <string name="confirm_dialog_cancel">キャンセル</string>
+    <string name="confirm_dialog_skip_forever">次からは確認しない</string>
 </resources>

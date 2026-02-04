@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import org.bak.inflationmemorygame.Settings
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
@@ -25,13 +26,15 @@ import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.components.VisualEffects
 import org.bak.inflationmemorygame.dialogs.Dialogs
 import org.bak.inflationmemorygame.isPreloadNeeded
+import org.bak.inflationmemorygame.loadSettings
 import org.bak.inflationmemorygame.values.Constants
 import org.bak.inflationmemorygame.values.LogMessages
 
 class GameStateViewModel(
     initialStage: Int,
     playerCount: Int,
-    shouldPreload: Boolean = isPreloadNeeded()
+    shouldPreload: Boolean = isPreloadNeeded(),
+    private val settings: Settings = loadSettings()
 ) : ViewModel() {
 
     private val stages = mutableStateListOf(StageState(stage = initialStage))
@@ -149,7 +152,7 @@ class GameStateViewModel(
         lockScreen()
         viewModelScope.launch {
             val shouldEnd = if (currentPlayer.isFlippable) {
-                Dialogs.ConfirmEndTurn().also { dialogs.add(it) }.awaitDismiss()
+                Dialogs.ConfirmEndTurn().also { dialogs.add(it) }.awaitDismiss().isConfirmed
             } else {
                 true
             }
@@ -162,17 +165,26 @@ class GameStateViewModel(
     }
 
     fun onAutoClick() {
-        // TODO 確認ダイアログ表示
         lockScreen()
         viewModelScope.launch {
-            while (true) {
-                val card = currentStage.cards.filter { !it.isFaceUp && !it.isMatched }
-                    .randomOrNull()?.takeIf { currentPlayer.isFlippable }
-                if (card == null) {
-                    break
-                } else {
-                    currentPlayer.addFlippedCard(card = card)
-                    flipCard(card)
+            val result = if (settings.isConfirmAutoFlipSkip) {
+                null
+            } else {
+                Dialogs.ConfirmAutoFlip().also { dialogs.add(it) }.awaitDismiss()
+            }
+            if (result?.isConfirmed != false) {
+                if (result?.skipForever == true) {
+                    settings.update(isConfirmAutoFlipSkip = true)
+                }
+                while (true) {
+                    val card = currentStage.cards.filter { !it.isFaceUp && !it.isMatched }
+                        .randomOrNull()?.takeIf { currentPlayer.isFlippable }
+                    if (card == null) {
+                        break
+                    } else {
+                        currentPlayer.addFlippedCard(card = card)
+                        flipCard(card)
+                    }
                 }
             }
             unlockScreen()
@@ -228,11 +240,12 @@ class GameStateViewModel(
         )
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
 
-        // TODO 自動拡大の設定を確認
         if (discoveredCards.add(card.displayName)) {
-            val dialog = Dialogs.CardDetail(card = card)
-            dialogs.add(dialog)
-            dialog.awaitDismiss()
+            if (settings.shouldShowDetailWhenDiscover) {
+                val dialog = Dialogs.CardDetail(card = card)
+                dialogs.add(dialog)
+                dialog.awaitDismiss()
+            }
         }
 
         // カードをめくったとき(ペア判定前)の効果発動

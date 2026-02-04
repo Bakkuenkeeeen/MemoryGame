@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import inflationmemorygame.composeapp.generated.resources.Res
+import inflationmemorygame.composeapp.generated.resources.confirm_auto_flip_message
+import inflationmemorygame.composeapp.generated.resources.confirm_auto_flip_title
 import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_message
 import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_title
 import kotlinx.coroutines.CompletableDeferred
@@ -29,6 +31,7 @@ import kotlinx.coroutines.Job
 import org.bak.inflationmemorygame.abilities.Ability
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.util.targetValue
+import org.jetbrains.compose.resources.StringResource
 
 @Stable
 sealed class Dialogs<TResult> {
@@ -69,12 +72,35 @@ sealed class Dialogs<TResult> {
         }
     }
 
-    sealed class Confirmation : WithResult<Boolean>() {
-        override val defaultValue: Boolean = false
+    sealed class Confirmation(
+        val title: StringResource? = null,
+        val message: StringResource,
+        val isSkipForeverSelectable: Boolean
+    ) : WithResult<Confirmation.Result>() {
+        override val defaultValue: Result get() = Result.canceled()
+
+        data class Result(val isConfirmed: Boolean, val skipForever: Boolean) {
+            companion object {
+                fun confirmed(skipForever: Boolean) =
+                    Result(isConfirmed = true, skipForever = skipForever)
+
+                fun canceled() = Result(isConfirmed = false, skipForever = false)
+            }
+        }
     }
 
     class CardDetail(card: AbilityCard) : NoResult(), Ability by card
-    class ConfirmEndTurn : Confirmation()
+    class ConfirmEndTurn : Confirmation(
+        title = Res.string.confirm_end_turn_title,
+        message = Res.string.confirm_end_turn_message,
+        isSkipForeverSelectable = false
+    )
+
+    class ConfirmAutoFlip : Confirmation(
+        title = Res.string.confirm_auto_flip_title,
+        message = Res.string.confirm_auto_flip_message,
+        isSkipForeverSelectable = true
+    )
 }
 
 @Composable
@@ -122,12 +148,17 @@ private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs<*>) 
             abilityDescription = dialog.description
         )
 
-        is Dialogs.ConfirmEndTurn -> ConfirmDialog(
+        is Dialogs.Confirmation -> ConfirmDialog(
             modifier = modifier,
-            title = Res.string.confirm_end_turn_title,
-            message = Res.string.confirm_end_turn_message,
-            onConfirm = { dialog.dismiss(result = true) },
-            onCancel = { dialog.dismiss(result = false) }
+            title = dialog.title,
+            message = dialog.message,
+            isSkipForeverSelectable = dialog.isSkipForeverSelectable,
+            onConfirm = { skipForever ->
+                dialog.dismiss(
+                    result = Dialogs.Confirmation.Result.confirmed(skipForever = skipForever)
+                )
+            },
+            onCancel = { dialog.dismiss(result = Dialogs.Confirmation.Result.canceled()) }
         )
     }
 }
