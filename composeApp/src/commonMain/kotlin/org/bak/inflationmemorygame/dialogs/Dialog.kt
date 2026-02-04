@@ -69,10 +69,12 @@ sealed class Dialogs<TResult> {
         }
     }
 
-    class CardDetail(card: AbilityCard) : NoResult(), Ability by card
-    class ConfirmEndTurn : WithResult<Boolean>() {
+    sealed class Confirmation : WithResult<Boolean>() {
         override val defaultValue: Boolean = false
     }
+
+    class CardDetail(card: AbilityCard) : NoResult(), Ability by card
+    class ConfirmEndTurn : Confirmation()
 }
 
 @Composable
