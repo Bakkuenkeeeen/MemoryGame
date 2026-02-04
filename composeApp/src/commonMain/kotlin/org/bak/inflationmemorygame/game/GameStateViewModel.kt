@@ -143,12 +143,21 @@ class GameStateViewModel(
     }
 
     fun onEndTurnClick() {
-        if (currentPlayer.isFlippable) {
-            // TODO ダイアログ表示
-        } else {
-            // 連打抑止のため、同期的にUIを無効化
-            lockScreen()
-            endTurnAsync()
+        // 連打抑止のため、同期的にUIを無効化
+        lockScreen()
+        viewModelScope.launch { 
+            val shouldEnd = if (currentPlayer.isFlippable) {
+                Dialogs.ConfirmEndTurn { dialogs.remove(it) }
+                    .also { dialogs.add(it) }
+                    .result.await()
+            } else {
+                true
+            }
+            if (shouldEnd) {
+                endAndStartNextTurn()
+            } else {
+                unlockScreen()
+            }
         }
     }
 
@@ -170,38 +179,36 @@ class GameStateViewModel(
         }
     }
 
-    private fun endTurnAsync() {
-        viewModelScope.launch {
-            // ステージ効果発動
-            // 獲得済み能力の効果発動
-            dispatchAllEffectHandlersFromPlayer(
-                handler = { it.onTurnEnd() },
-                dispatcher = {
-                    it.dispatch(
-                        param = OnTurnEndEffectHandler.Param(
-                            stageState = currentStage,
-                            player = currentPlayer
-                        )
+    private suspend fun endAndStartNextTurn() {
+        // ステージ効果発動
+        // 獲得済み能力の効果発動
+        dispatchAllEffectHandlersFromPlayer(
+            handler = { it.onTurnEnd() },
+            dispatcher = {
+                it.dispatch(
+                    param = OnTurnEndEffectHandler.Param(
+                        stageState = currentStage,
+                        player = currentPlayer
                     )
-                }
-            )
-            // TODO 表のままにしておくカードの制御
-            val waiters = currentStage.cards.filter { !it.isMatched && it.isFaceUp }.map { card ->
-                viewModelScope.launch {
-                    applyOneTimeVisualEffects(
-                        card = card,
-                        effect = VisualEffects.Flip(
-                            isInitialFaceUp = true,
-                            onFaceChange = { card.changeSurface(isFaceUp = false) }
-                        ),
-                        awaitCompletion = true
-                    )
-                }
+                )
             }
-            waiters.joinAll()
-            // delay(Constants.FLIP_ANIMATION_DURATION_MILLIS.toLong())
-            startTurn()
+        )
+        // TODO 表のままにしておくカードの制御
+        val waiters = currentStage.cards.filter { !it.isMatched && it.isFaceUp }.map { card ->
+            viewModelScope.launch {
+                applyOneTimeVisualEffects(
+                    card = card,
+                    effect = VisualEffects.Flip(
+                        isInitialFaceUp = true,
+                        onFaceChange = { card.changeSurface(isFaceUp = false) }
+                    ),
+                    awaitCompletion = true
+                )
+            }
         }
+        waiters.joinAll()
+        // delay(Constants.FLIP_ANIMATION_DURATION_MILLIS.toLong())
+        startTurn()
     }
 
     private suspend fun flipCardByPlayer(card: AbilityCard) {
@@ -222,13 +229,10 @@ class GameStateViewModel(
         logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
 
         // TODO 自動拡大の設定を確認
-        val waitDialog = Job()
         if (discoveredCards.add(card.displayName)) {
-            dialogs.add(Dialogs.CardDetail(card = card) {
-                dialogs.remove(it)
-                waitDialog.complete()
-            })
-            waitDialog.join()
+            val dialog = Dialogs.CardDetail(card = card) { dialogs.remove(it) }
+            dialogs.add(dialog)
+            dialog.result.join()
         }
 
         // カードをめくったとき(ペア判定前)の効果発動

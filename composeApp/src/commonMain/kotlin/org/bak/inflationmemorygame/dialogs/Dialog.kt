@@ -15,22 +15,50 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import inflationmemorygame.composeapp.generated.resources.Res
+import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_message
+import inflationmemorygame.composeapp.generated.resources.confirm_end_turn_title
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.util.targetValue
 
 sealed class Dialogs {
-    abstract fun onDismissRequest()
+    abstract val result: Job
+    open fun onDismissRequest() {
+    }
 
     @Immutable
     class CardDetail(
         val card: AbilityCard,
         private val onDismissRequest: (CardDetail) -> Unit
     ) : Dialogs() {
+        private val mResult: CompletableJob = Job()
+        override val result: Job get() = mResult
         override fun onDismissRequest() {
             onDismissRequest.invoke(this)
+            mResult.complete()
+        }
+    }
+
+    @Immutable
+    class ConfirmEndTurn(
+        private val onDismissRequest: (ConfirmEndTurn) -> Unit
+    ) : Dialogs() {
+        private val mResult = CompletableDeferred<Boolean>()
+        override val result: Deferred<Boolean> get() = mResult
+        override fun onDismissRequest() {
+            onDismissRequest.invoke(this)
+            mResult.complete(value = false)
+        }
+
+        fun onConfirm() {
+            onDismissRequest.invoke(this)
+            mResult.complete(value = true)
         }
     }
 }
@@ -74,5 +102,12 @@ private fun DialogLayer(dialog: Dialogs) {
 private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs) {
     when (dialog) {
         is Dialogs.CardDetail -> CardDetailDialog(modifier = modifier, ability = dialog.card)
+        is Dialogs.ConfirmEndTurn -> ConfirmDialog(
+            modifier = modifier,
+            title = Res.string.confirm_end_turn_title,
+            message = Res.string.confirm_end_turn_message,
+            onConfirm = { dialog.onConfirm() },
+            onCancel = { dialog.onDismissRequest() }
+        )
     }
 }
