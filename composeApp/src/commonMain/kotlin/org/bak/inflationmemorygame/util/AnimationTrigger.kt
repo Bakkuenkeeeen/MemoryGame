@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun <T> targetValue(from: T, to: T): T {
+fun <T> animationTrigger(from: T, to: T): T {
     var value by remember { mutableStateOf(from) }
     LaunchedEffect(Unit) {
         value = to

@@ -21,7 +21,7 @@ import org.bak.inflationmemorygame.values.Colors
 
 @Composable
 fun BoardArea(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     stageState: StageState,
     cardsInEachRow: Int,
     onCardClick: (AbilityCard) -> Unit

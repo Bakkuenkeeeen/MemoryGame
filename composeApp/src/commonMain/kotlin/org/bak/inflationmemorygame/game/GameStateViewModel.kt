@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,15 +26,16 @@ import org.bak.inflationmemorygame.components.VisualEffects
 import org.bak.inflationmemorygame.dialogs.Dialogs
 import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.loadSettings
+import org.bak.inflationmemorygame.logs.LogState
+import org.bak.inflationmemorygame.logs.Logs
 import org.bak.inflationmemorygame.values.Constants
-import org.bak.inflationmemorygame.values.LogMessages
 
 class GameStateViewModel(
     initialStage: Int,
     playerCount: Int,
     shouldPreload: Boolean = isPreloadNeeded(),
     private val settings: Settings = loadSettings()
-) : ViewModel() {
+) : ViewModel(), LogState by LogState() {
 
     private val stages = mutableStateListOf(StageState(stage = initialStage))
     private val players = mutableStateListOf<PlayerState>().apply {
@@ -48,7 +48,6 @@ class GameStateViewModel(
         players[(currentStage.turns - 1) % players.size]
     }
 
-    val logMessageState = LogMessageState(coroutineScope = viewModelScope)
     var isButtonsEnable: Boolean by mutableStateOf(true)
         private set
 
@@ -87,7 +86,7 @@ class GameStateViewModel(
     suspend fun startStage() {
         // 溜まったダイアログのスタックをクリア
         dialogs.clear()
-        logMessageState.pushMessage(AnnotatedString("ステージ${currentStage.stage}開始"))
+        append(log = Logs.StartState(currentStage.stage))
         currentStage.cards.forEach { card ->
             applyOneTimeVisualEffects(
                 card = card,
@@ -102,7 +101,7 @@ class GameStateViewModel(
         lockScreen()
         currentStage.incrementTurn()
         currentPlayer.clearFlippedCards()
-        logMessageState.pushMessage(AnnotatedString("ターン ${currentStage.turns}"))
+        append(log = Logs.StartTurn(currentStage.turns))
 
         // 場札の効果発動
         dispatchAllEffectHandlersFromStage(handler = { it.onTurnStart() }, dispatcher = {
@@ -152,7 +151,7 @@ class GameStateViewModel(
         lockScreen()
         viewModelScope.launch {
             val shouldEnd = if (currentPlayer.isFlippable) {
-                Dialogs.ConfirmEndTurn().also { dialogs.add(it) }.awaitDismiss().isConfirmed
+                showDialog(Dialogs.ConfirmEndTurn()).isConfirmed
             } else {
                 true
             }
@@ -167,25 +166,29 @@ class GameStateViewModel(
     fun onAutoClick() {
         lockScreen()
         viewModelScope.launch {
-            val result = if (settings.isConfirmAutoFlipSkip) {
-                null
-            } else {
-                Dialogs.ConfirmAutoFlip().also { dialogs.add(it) }.awaitDismiss()
-            }
-            if (result?.isConfirmed != false) {
-                if (result?.skipForever == true) {
-                    settings.update(isConfirmAutoFlipSkip = true)
+            if (currentPlayer.isFlippable) {
+                val result = if (settings.isConfirmAutoFlipSkip) {
+                    null
+                } else {
+                    showDialog(Dialogs.ConfirmAutoFlip())
                 }
-                while (true) {
-                    val card = currentStage.cards.filter { !it.isFaceUp && !it.isMatched }
-                        .randomOrNull()?.takeIf { currentPlayer.isFlippable }
-                    if (card == null) {
-                        break
-                    } else {
-                        currentPlayer.addFlippedCard(card = card)
-                        flipCard(card)
+                if (result?.isConfirmed != false) {
+                    if (result?.skipForever == true) {
+                        settings.update(isConfirmAutoFlipSkip = true)
+                    }
+                    while (true) {
+                        val card = currentStage.cards.filter { !it.isFaceUp && !it.isMatched }
+                            .randomOrNull()?.takeIf { currentPlayer.isFlippable }
+                        if (card == null) {
+                            break
+                        } else {
+                            currentPlayer.addFlippedCard(card = card)
+                            flipCard(card)
+                        }
                     }
                 }
+            } else {
+                onNotFlippable()
             }
             unlockScreen()
         }
@@ -238,13 +241,11 @@ class GameStateViewModel(
             ),
             awaitCompletion = true
         )
-        logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_FLIPPED))
+        append(log = Logs.Discover(card.displayName))
 
         if (discoveredCards.add(card.displayName)) {
             if (settings.shouldShowDetailWhenDiscover) {
-                val dialog = Dialogs.CardDetail(card = card)
-                dialogs.add(dialog)
-                dialog.awaitDismiss()
+                showDialog(Dialogs.CardDetail(card = card))
             }
         }
 
@@ -290,7 +291,7 @@ class GameStateViewModel(
             })
             waiters.joinAll()
             // currentStage.onPairMatch(card = card, matchedCard = matchedCard)
-            logMessageState.pushMessage(LogMessage(card.displayName, LogMessages.CARD_MATCHED))
+            append(log = Logs.Match(card.displayName))
             // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
             // ペア成立時の効果発動
@@ -332,18 +333,24 @@ class GameStateViewModel(
     }
 
     fun onCardClick(card: AbilityCard) {
-        // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
-        if (card.isFaceUp) {
-            dialogs.add(Dialogs.CardDetail(card = card))
-        } else if (currentPlayer.isFlippable) {
-            // 連打抑止のため、同期的にUIを無効化
-            lockScreen()
-            viewModelScope.launch {
+        // 連打抑止のため、同期的にUIを無効化
+        lockScreen()
+        viewModelScope.launch {
+            // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
+            if (card.isFaceUp) {
+                dialogs.add(Dialogs.CardDetail(card = card))
+                unlockScreen()
+            } else if (currentPlayer.isFlippable) {
                 flipCardByPlayer(card = card)
+            } else {
+                onNotFlippable()
+                unlockScreen()
             }
-        } else {
-            logMessageState.pushMessageAsync(AnnotatedString("このターンは、もうめくれない"))
         }
+    }
+
+    private suspend fun onNotFlippable() {
+        append(log = Logs.NotFlippable())
     }
 
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromStage(
@@ -388,7 +395,7 @@ class GameStateViewModel(
         action: suspend (R) -> Unit = {}
     ) {
         val result = dispatcher(handler).also {
-            it.message?.let { message -> logMessageState.pushMessageAsync(message = message) }
+            it.log?.let { log -> append(log) }
             it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
             it.lostEffectParentInstanceIds.forEach { instanceId ->
                 currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
@@ -413,6 +420,11 @@ class GameStateViewModel(
         } else {
             card.applyVisualEffects(effect)
         }
+    }
+
+    private suspend fun <T> showDialog(dialog: Dialogs<T>): T {
+        dialogs.add(dialog)
+        return dialog.awaitDismiss()
     }
 }
 

@@ -9,9 +9,8 @@ import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.logs.Logs
 import org.bak.inflationmemorygame.components.VisualEffects
-import org.bak.inflationmemorygame.game.LogMessage
-import org.bak.inflationmemorygame.values.LogMessages
 
 class HiramekiCard : AbilityCard.NoFieldEffect(actual = Abilities.Hirameki) {
     override fun onEarn(): EarnedAbility = HiramekiAbility()
@@ -34,10 +33,10 @@ class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
                                 it.displayName == param.flippedCard.displayName &&
                                 it.instanceId != param.flippedCard.instanceId
                     }.randomOrNull()
-                    val message = if (match == null) {
+                    val log = if (match == null) {
                         // 対象がなければ再使用可能にしておく
                         changeEffectState(to = EffectState.Ready)
-                        LogMessage(displayName, LogMessages.EFFECT_NOT_ACTIVATED)
+                        Logs.EffectMistake(displayName)
                     } else {
                         changeEffectState(to = EffectState.End)
                         param.gameStateViewModel.applyOneTimeVisualEffects(
@@ -45,9 +44,9 @@ class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
                             effect = VisualEffects.Ripple(),
                             awaitCompletion = false
                         )
-                        LogMessage(displayName, LogMessages.EFFECT_ACTIVATED)
+                        Logs.EffectActivate(displayName)
                     }
-                    return EffectHandler.Result(message = message)
+                    return EffectHandler.Result(log = log)
                 }
             }
         }

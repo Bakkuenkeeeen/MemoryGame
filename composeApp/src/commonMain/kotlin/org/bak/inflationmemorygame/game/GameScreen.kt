@@ -12,8 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.bak.inflationmemorygame.components.BoardArea
-import org.bak.inflationmemorygame.components.LogArea
 import org.bak.inflationmemorygame.isWindowWidthCompact
+import org.bak.inflationmemorygame.logs.LogArea
 import org.bak.inflationmemorygame.values.Constants
 
 @Composable
@@ -48,10 +48,7 @@ fun CompactGameScreen(modifier: Modifier = Modifier, state: GameStateViewModel) 
                 modifier = Modifier.weight(1f).fillMaxSize(),
                 playerState = state.currentPlayer
             )
-            LogArea(
-                modifier = Modifier.weight(1f).fillMaxSize(),
-                logMessageState = state.logMessageState
-            )
+            LogArea(modifier = Modifier.weight(1f).fillMaxSize(), state = state)
         }
     }
 }
@@ -78,7 +75,7 @@ fun WideGameScreen(modifier: Modifier = Modifier, state: GameStateViewModel) {
                 }
                 PlayerStatusArea(modifier = Modifier.weight(2f), playerState = state.currentPlayer)
             }
-            LogArea(modifier = Modifier.weight(2f), logMessageState = state.logMessageState)
+            LogArea(modifier = Modifier.weight(2f), state = state)
         }
     }
 }
@@ -96,9 +93,3 @@ fun PlayerStatusArea(modifier: Modifier = Modifier, playerState: PlayerState) {
         color = fontColor
     )
 }
-
-@Composable
-fun StageInfoArea(stageState: StageState) {
-
-}
-

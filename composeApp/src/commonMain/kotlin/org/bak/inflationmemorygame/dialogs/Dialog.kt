@@ -30,7 +30,7 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import org.bak.inflationmemorygame.abilities.Ability
 import org.bak.inflationmemorygame.abilities.AbilityCard
-import org.bak.inflationmemorygame.util.targetValue
+import org.bak.inflationmemorygame.util.animationTrigger
 import org.jetbrains.compose.resources.StringResource
 
 @Stable
@@ -107,7 +107,7 @@ sealed class Dialogs<TResult> {
 fun Dialogs(dialogs: List<Dialogs<*>>) {
     dialogs.forEach { dialog ->
         AnimatedVisibility(
-            visible = targetValue(from = false, to = true) && dialog.isActive,
+            visible = animationTrigger(from = false, to = true) && dialog.isActive,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -139,7 +139,11 @@ private fun DialogLayer(dialog: Dialogs<*>) {
 }
 
 @Composable
-private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs<*>) {
+private fun Dialog(modifier: Modifier = Modifier, dialog: Dialogs<*>) {
+    val clickDisabledModifier = modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null
+    ) {}
     when (dialog) {
         is Dialogs.CardDetail -> CardDetailDialog(
             modifier = modifier,
@@ -149,7 +153,7 @@ private fun Dialog(modifier: Modifier = Modifier.Companion, dialog: Dialogs<*>) 
         )
 
         is Dialogs.Confirmation -> ConfirmDialog(
-            modifier = modifier,
+            modifier = clickDisabledModifier,
             title = dialog.title,
             message = dialog.message,
             isSkipForeverSelectable = dialog.isSkipForeverSelectable,

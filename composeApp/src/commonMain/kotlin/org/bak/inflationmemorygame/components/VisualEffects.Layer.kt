@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.bak.inflationmemorygame.util.targetValue
+import org.bak.inflationmemorygame.util.animationTrigger
 import org.bak.inflationmemorygame.values.Constants
 
 @Composable
@@ -32,7 +32,7 @@ fun BoxScope.VisualEffectsLayer(effects: List<VisualEffects>) {
 @Composable
 private fun BoxScope.RippleVisualEffect(effect: VisualEffects.Ripple) {
     val fraction by animateFloatAsState(
-        targetValue = targetValue(from = 0f, to = 1f),
+        targetValue = animationTrigger(from = 0f, to = 1f),
         animationSpec = repeatable(
             iterations = Constants.VISUAL_EFFECT_RIPPLE_TOTAL_COUNT,
             animation = tween(durationMillis = Constants.VISUAL_EFFECT_RIPPLE_EACH_DURATION_MILLIS)

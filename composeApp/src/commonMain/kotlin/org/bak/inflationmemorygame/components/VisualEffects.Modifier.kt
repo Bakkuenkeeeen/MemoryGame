@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import org.bak.inflationmemorygame.util.targetValue
+import org.bak.inflationmemorygame.util.animationTrigger
 import org.bak.inflationmemorygame.values.Constants
 
 @Composable
@@ -40,7 +40,7 @@ fun Modifier.visualEffects(effects: List<VisualEffects>): Modifier {
 @Composable
 private fun Modifier.appear(effect: VisualEffects.Appear): Modifier {
     val offset by animateFloatAsState(
-        targetValue = targetValue(from = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX, to = 0f),
+        targetValue = animationTrigger(from = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX, to = 0f),
         animationSpec = tween(Constants.VISUAL_EFFECT_APPEAR_DURATION_MILLIS)
     ) {
         effect.onComplete()
@@ -54,7 +54,7 @@ private fun Modifier.appear(effect: VisualEffects.Appear): Modifier {
 @Composable
 private fun Modifier.disappear(effect: VisualEffects.Disappear): Modifier {
     val offset by animateFloatAsState(
-        targetValue = targetValue(from = 0f, to = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX),
+        targetValue = animationTrigger(from = 0f, to = Constants.VISUAL_EFFECT_APPEAR_INITIAL_OFFSET_PX),
         animationSpec = tween(Constants.VISUAL_EFFECT_APPEAR_DURATION_MILLIS)
     ) {
         effect.onComplete()
@@ -68,9 +68,9 @@ private fun Modifier.disappear(effect: VisualEffects.Disappear): Modifier {
 @Composable
 private fun Modifier.flip(effect: VisualEffects.Flip): Modifier {
     val targetValue = if (effect.isInitialFaceUp) {
-        targetValue(from = 360f, to = 180f)
+        animationTrigger(from = 360f, to = 180f)
     } else {
-        targetValue(from = 180f, to = 360f)
+        animationTrigger(from = 180f, to = 360f)
     }
     val rotation by animateFloatAsState(
         targetValue = targetValue,

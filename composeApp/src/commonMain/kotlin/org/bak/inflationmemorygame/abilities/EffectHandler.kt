@@ -1,8 +1,6 @@
 package org.bak.inflationmemorygame.abilities
 
-import androidx.compose.ui.unit.Constraints
-import org.bak.inflationmemorygame.game.LogMessage
-import org.bak.inflationmemorygame.values.LogMessages
+import org.bak.inflationmemorygame.logs.Logs
 
 interface EffectHandler {
     val priority: Int
@@ -12,7 +10,7 @@ interface EffectHandler {
     }
 
     open class Result(
-        val message: LogMessage? = null,
+        val log: Logs? = null,
         val gainedEffects: List<StatusEffect> = emptyList(),
         val lostEffectParentInstanceIds: List<Long> = emptyList(),
         val additionalFlippedCards: List<AbilityCard> = emptyList()
@@ -21,7 +19,7 @@ interface EffectHandler {
          * 能力発動時用.
          */
         constructor(abilityName: String, gainedEffect: StatusEffect) : this(
-            message = LogMessage(abilityName, LogMessages.EFFECT_ACTIVATED),
+            log = Logs.EffectActivate(abilityName),
             gainedEffects = listOf(gainedEffect)
         )
 
@@ -29,7 +27,7 @@ interface EffectHandler {
          * 能力喪失時用.
          */
         constructor(abilityName: String, lostEffectParentInstanceId: Long) : this(
-            message = LogMessage(abilityName, LogMessages.EFFECT_END),
+            log = Logs.EffectDeactivate(abilityName),
             lostEffectParentInstanceIds = listOf(lostEffectParentInstanceId)
         )
     }
