@@ -4,6 +4,7 @@ import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.GrowAbility
+import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandlerParam
@@ -43,13 +44,15 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
                         .take(level)
                         .map { it.instanceId }
                 )
-                val log = if (holdCards.isEmpty()) {
-                    Logs.EffectMistake(name = displayName)
-                } else {
-                    Logs.EffectActivate(name = displayName)
-                }
-                return listOf(EffectHandlerResults.PrintLog(log)) + holdCards.map {
-                    EffectHandlerResults.KeepFlipped(it)
+                return buildEffectHandlerResults {
+                    if (holdCards.isEmpty()) {
+                        Logs.EffectMistake(name = displayName)
+                    } else {
+                        Logs.GainStatusEffect(name = displayName)
+                        holdCards.forEach {
+                            keepFlipped(targetInstanceId = it)
+                        }
+                    }
                 }
             }
         }
@@ -59,10 +62,12 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
         return object : OnAbilityLostEffectHandler {
             override val priority: Int = OnAbilityLostEffectHandler.PRIORITY_HOLD_LEVEL_DOWN
             override suspend fun dispatch(param: OnAbilityLostEffectHandlerParam): List<EffectHandlerResults> {
-                val removed = holdCards.random()
-                holdCards.remove(removed)
-                return EffectHandlerResults.ReverseCard(targetInstanceId = removed)
-                    .withLog(Logs.LevelDown(name = displayName))
+                return buildEffectHandlerResults {
+                    printLog(Logs.LevelDown(name = displayName))
+                    reverseCard(targetInstanceId = holdCards.random().also {
+                        holdCards.remove(it)
+                    })
+                }
             }
         }
     }

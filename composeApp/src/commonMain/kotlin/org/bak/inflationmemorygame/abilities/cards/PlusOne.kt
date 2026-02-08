@@ -5,6 +5,7 @@ import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.StatusEffect
+import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
@@ -22,13 +23,16 @@ class PlusOneAbility : EarnedAbility(ability = Abilities.PlusOne) {
     override fun onEarn(): OnAbilityEarnEffectHandler = object : OnAbilityEarnEffectHandler {
         override val priority: Int = OnAbilityEarnEffectHandler.PRIORITY_PLUS_ONE
         override suspend fun dispatch(param: OnAbilityEarnEffectHandlerParam) =
-            EffectHandlerResults.GainStatusEffect(
-                effect = StatusEffect(
-                    parentAbilityInstanceId = instanceId,
-                    amount = 1,
-                    calculationType = StatusEffect.CalculationType.Add
+            buildEffectHandlerResults {
+                printLog(Logs.GainStatusEffect(name = displayName))
+                gainStatusEffect(
+                    effect = StatusEffect(
+                        parentAbilityInstanceId = instanceId,
+                        amount = 1,
+                        calculationType = StatusEffect.CalculationType.Add
+                    )
                 )
-            ).withLog(Logs.EffectActivate(name = displayName))
+            }
     }
 
     override fun onTurnStart(): OnTurnStartEffectHandler? = null

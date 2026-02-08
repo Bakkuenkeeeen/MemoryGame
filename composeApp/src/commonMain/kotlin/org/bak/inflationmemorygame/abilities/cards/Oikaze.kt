@@ -3,8 +3,8 @@ package org.bak.inflationmemorygame.abilities.cards
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
-import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.StatusEffect
+import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
@@ -33,15 +33,17 @@ class OikazeAbility : EarnedAbility(ability = Abilities.Oikaze) {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {
             return object : OnPairMatchEffectHandler {
                 override val priority: Int = OnPairMatchEffectHandler.PROIORITY_OIKAZE
-                override suspend fun dispatch(param: OnPairMatchEffectHandlerParam): List<EffectHandlerResults> {
-                    return EffectHandlerResults.GainStatusEffect(
-                        effect = StatusEffect(
-                            parentAbilityInstanceId = instanceId,
-                            amount = Params.OIKAZE_AMOUNT,
-                            calculationType = StatusEffect.CalculationType.Add
+                override suspend fun dispatch(param: OnPairMatchEffectHandlerParam) =
+                    buildEffectHandlerResults {
+                        printLog(Logs.GainStatusEffect(name = displayName))
+                        gainStatusEffect(
+                            effect = StatusEffect(
+                                parentAbilityInstanceId = instanceId,
+                                amount = Params.OIKAZE_AMOUNT,
+                                calculationType = StatusEffect.CalculationType.Add
+                            )
                         )
-                    ).withLog(Logs.EffectActivate(name = displayName))
-                }
+                    }
             }
         }
         return null
@@ -52,10 +54,11 @@ class OikazeAbility : EarnedAbility(ability = Abilities.Oikaze) {
             // このターン内に発動した効果をリセット
             return object : OnTurnEndEffectHandler {
                 override val priority: Int = OnTurnEndEffectHandler.PRIORITY_OIKAZE
-                override suspend fun dispatch(param: OnTurnEndEffectHandlerParam): List<EffectHandlerResults> {
-                    return EffectHandlerResults.LostStatusEffect(parentInstanceId = instanceId)
-                        .withLog(Logs.EffectDeactivate(name = displayName))
-                }
+                override suspend fun dispatch(param: OnTurnEndEffectHandlerParam) =
+                    buildEffectHandlerResults {
+                        printLog(Logs.LostStatusEffect(name = displayName))
+                        lostStatusEffect(parentInstanceId = instanceId)
+                    }
             }
         } else {
             return null

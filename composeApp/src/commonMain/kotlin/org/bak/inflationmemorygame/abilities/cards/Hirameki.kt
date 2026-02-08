@@ -4,6 +4,7 @@ import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
+import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandlerParam
@@ -35,16 +36,19 @@ class HiramekiAbility : EarnedAbility(ability = Abilities.Hirameki) {
                                 it.displayName == param.flippedCard.displayName &&
                                 it.instanceId != param.flippedCard.instanceId
                     }.randomOrNull()
-                    return if (match == null) {
-                        // 対象がなければ再使用可能にしておく
-                        changeEffectState(to = EffectState.Ready)
-                        EffectHandlerResults.PrintLog.onMistake(name = displayName)
-                    } else {
-                        changeEffectState(to = EffectState.End)
-                        EffectHandlerResults.ApplyVisualEffect(
-                            targetInstanceId = match.instanceId,
-                            visualEffect = VisualEffects.Ripple()
-                        ).withLog(Logs.EffectActivate(name = displayName))
+                    return buildEffectHandlerResults {
+                        if (match == null) {
+                            // 対象がなければ再使用可能にしておく
+                            changeEffectState(to = EffectState.Ready)
+                            printLog(Logs.EffectMistake(name = displayName))
+                        } else {
+                            changeEffectState(to = EffectState.End)
+                            printLog(Logs.GainStatusEffect(name = displayName))
+                            applyVisualEffect(
+                                targetInstanceId = match.instanceId,
+                                visualEffect = VisualEffects.Ripple()
+                            )
+                        }
                     }
                 }
             }

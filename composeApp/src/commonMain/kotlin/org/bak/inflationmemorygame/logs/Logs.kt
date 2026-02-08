@@ -145,14 +145,14 @@ sealed class Logs(
         suffixRes = Res.string.message_ability_lost_suffix
     )
 
-    class EffectActivate(name: String) : Logs(
+    class GainStatusEffect(name: String) : Logs(
         tag = Res.string.message_tag_effect,
         color = Colors.AbilityMessageColor,
         parameter = name,
         suffixRes = Res.string.message_effect_activate_suffix
     )
 
-    class EffectDeactivate(name: String) : Logs(
+    class LostStatusEffect(name: String) : Logs(
         tag = Res.string.message_tag_effect,
         color = Colors.AbilityMessageColor,
         parameter = name,
