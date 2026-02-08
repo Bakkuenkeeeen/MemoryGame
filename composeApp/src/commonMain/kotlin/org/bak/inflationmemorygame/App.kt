@@ -59,7 +59,7 @@ fun App() {
                 LoadingScreen(modifier = Modifier.padding(innerPadding))
             }
             // ダイアログは全画面表示のためinnerPaddingは使わない
-            Dialogs(dialogs = state.dialogs)
+            Dialogs(state = state)
         }
     }
 }

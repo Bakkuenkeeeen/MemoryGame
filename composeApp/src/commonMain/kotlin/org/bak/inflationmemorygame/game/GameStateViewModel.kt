@@ -23,6 +23,7 @@ import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.components.VisualEffects
+import org.bak.inflationmemorygame.dialogs.DialogState
 import org.bak.inflationmemorygame.dialogs.Dialogs
 import org.bak.inflationmemorygame.isPreloadNeeded
 import org.bak.inflationmemorygame.loadSettings
@@ -35,7 +36,9 @@ class GameStateViewModel(
     playerCount: Int,
     shouldPreload: Boolean = isPreloadNeeded(),
     private val settings: Settings = loadSettings()
-) : ViewModel(), LogState by LogState() {
+) : ViewModel(),
+    LogState by LogState(),
+    DialogState by DialogState() {
 
     private val stages = mutableStateListOf(StageState(stage = initialStage))
     private val players = mutableStateListOf<PlayerState>().apply {
@@ -57,7 +60,6 @@ class GameStateViewModel(
         private set
 
     private val discoveredCards = mutableSetOf<String>()
-    val dialogs = mutableStateListOf<Dialogs<*>>()
 
     init {
         viewModelScope.launch {
@@ -85,8 +87,8 @@ class GameStateViewModel(
 
     suspend fun startStage() {
         // 溜まったダイアログのスタックをクリア
-        dialogs.clear()
-        append(log = Logs.StartState(currentStage.stage))
+        clearDialogs()
+        appendLog(log = Logs.StartState(currentStage.stage))
         currentStage.cards.forEach { card ->
             applyOneTimeVisualEffects(
                 card = card,
@@ -101,7 +103,7 @@ class GameStateViewModel(
         lockScreen()
         currentStage.incrementTurn()
         currentPlayer.clearFlippedCards()
-        append(log = Logs.StartTurn(currentStage.turns))
+        appendLog(log = Logs.StartTurn(currentStage.turns))
 
         // 場札の効果発動
         dispatchAllEffectHandlersFromStage(handler = { it.onTurnStart() }, dispatcher = {
@@ -241,7 +243,7 @@ class GameStateViewModel(
             ),
             awaitCompletion = true
         )
-        append(log = Logs.Discover(card.displayName))
+        appendLog(log = Logs.Discover(card.displayName))
 
         if (discoveredCards.add(card.displayName)) {
             if (settings.shouldShowDetailWhenDiscover) {
@@ -291,7 +293,7 @@ class GameStateViewModel(
             })
             waiters.joinAll()
             // currentStage.onPairMatch(card = card, matchedCard = matchedCard)
-            append(log = Logs.Match(card.displayName))
+            appendLog(log = Logs.Match(card.displayName))
             // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
             // ペア成立時の効果発動
@@ -338,7 +340,7 @@ class GameStateViewModel(
         viewModelScope.launch {
             // TODO ダブルクリックでめくる設定がONなら、それっぽい表示に
             if (card.isFaceUp) {
-                dialogs.add(Dialogs.CardDetail(card = card))
+                showDialog(Dialogs.CardDetail(card = card))
                 unlockScreen()
             } else if (currentPlayer.isFlippable) {
                 flipCardByPlayer(card = card)
@@ -350,7 +352,7 @@ class GameStateViewModel(
     }
 
     private suspend fun onNotFlippable() {
-        append(log = Logs.NotFlippable())
+        appendLog(log = Logs.NotFlippable())
     }
 
     private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromStage(
@@ -395,7 +397,7 @@ class GameStateViewModel(
         action: suspend (R) -> Unit = {}
     ) {
         val result = dispatcher(handler).also {
-            it.log?.let { log -> append(log) }
+            it.log?.let { log -> appendLog(log) }
             it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
             it.lostEffectParentInstanceIds.forEach { instanceId ->
                 currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
@@ -420,11 +422,6 @@ class GameStateViewModel(
         } else {
             card.applyVisualEffects(effect)
         }
-    }
-
-    private suspend fun <T> showDialog(dialog: Dialogs<T>): T {
-        dialogs.add(dialog)
-        return dialog.awaitDismiss()
     }
 }
 

@@ -104,8 +104,8 @@ sealed class Dialogs<TResult> {
 }
 
 @Composable
-fun Dialogs(dialogs: List<Dialogs<*>>) {
-    dialogs.forEach { dialog ->
+fun Dialogs(state: DialogState) {
+    state.dialogs.forEach { dialog ->
         AnimatedVisibility(
             visible = animationTrigger(from = false, to = true) && dialog.isActive,
             enter = fadeIn(),

@@ -7,18 +7,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 @Stable
 interface LogState {
     val logs: List<Logs>
-    suspend fun append(log: Logs)
-    fun requestDismiss(index: Int)
+    suspend fun appendLog(log: Logs)
 }
 
 fun LogState() = object : LogState {
     override val logs: SnapshotStateList<Logs> = mutableStateListOf()
-    override suspend fun append(log: Logs) {
+    override suspend fun appendLog(log: Logs) {
         logs.add(log)
         log.awaitAppear()
-    }
-
-    override fun requestDismiss(index: Int) {
-        logs[index].requestDismiss()
     }
 }
