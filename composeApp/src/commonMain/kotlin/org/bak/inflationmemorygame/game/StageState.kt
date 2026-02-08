@@ -12,6 +12,7 @@ import org.bak.inflationmemorygame.abilities.cards.HoldCard
 import org.bak.inflationmemorygame.abilities.cards.OikazeCard
 import org.bak.inflationmemorygame.abilities.cards.PlusOneCard
 import org.bak.inflationmemorygame.abilities.cards.SuperhumanCard
+import org.bak.inflationmemorygame.abilities.cards.TotteokiCard
 
 @Stable
 class StageState(val stage: Int = 1) {
@@ -30,10 +31,11 @@ class StageState(val stage: Int = 1) {
                     Abilities.Oikaze -> OikazeCard()
                     Abilities.Hirameki -> HiramekiCard()
                     Abilities.Hold -> HoldCard()
+                    Abilities.Totteoki -> TotteokiCard()
                 }
             })
         }
-        shuffle()
+        // shuffle()
     }
 
     fun incrementTurn() {

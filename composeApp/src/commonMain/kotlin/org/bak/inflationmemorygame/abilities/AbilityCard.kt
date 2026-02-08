@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.components.VisualEffects
 import kotlin.random.Random
@@ -13,8 +14,16 @@ import kotlin.random.Random
 @Stable
 abstract class AbilityCard(
     ability: Abilities,
-    val earnedAbilityFactory: () -> EarnedAbility
+    private val earnedAbilityFactory: (() -> EarnedAbility)? = null
 ) : Ability by ability {
+
+    open fun gainAbility(): EarnedAbility? {
+        if (earnedAbilityFactory == null) {
+            throw NotImplementedError("$displayName の獲得処理を実装してください.")
+        } else {
+            return earnedAbilityFactory()
+        }
+    }
 
     /** 盤面上の同一の能力を区別するためのID. */
     val instanceId: Long = Random.nextLong()
@@ -53,10 +62,12 @@ abstract class AbilityCard(
 
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
     abstract fun onCardFlip(): OnCardFlipEffectHandler?
+    abstract fun onTurnEnd(): OnTurnEndEffectHandler?
 
     abstract class NoFieldEffect(ability: Abilities, earnedAbilityFactory: () -> EarnedAbility) :
         AbilityCard(ability = ability, earnedAbilityFactory = earnedAbilityFactory) {
         override fun onTurnStart(): OnTurnStartEffectHandler? = null
         override fun onCardFlip(): OnCardFlipEffectHandler? = null
+        override fun onTurnEnd(): OnTurnEndEffectHandler? = null
     }
 }

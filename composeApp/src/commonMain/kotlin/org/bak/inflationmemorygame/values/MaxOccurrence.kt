@@ -14,7 +14,8 @@ enum class MaxOccurrences(
     Superhuman(inStage = 2),
     Oikaze(inStage = 2, inGame = 5),
     Hirameki(inStage = 2),
-    Hold(inStage = 2, inGame = 3)
+    Hold(inStage = 2, inGame = 3),
+    Totteoki(inStage = 1)
     ;
 
     companion object {

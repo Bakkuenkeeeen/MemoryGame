@@ -6,6 +6,7 @@ import inflationmemorygame.composeapp.generated.resources.hold
 import inflationmemorygame.composeapp.generated.resources.oikaze
 import inflationmemorygame.composeapp.generated.resources.plus_one
 import inflationmemorygame.composeapp.generated.resources.superhuman
+import inflationmemorygame.composeapp.generated.resources.totteoki
 import org.bak.inflationmemorygame.values.AbilityText
 import org.bak.inflationmemorygame.values.AbilityTexts
 import org.bak.inflationmemorygame.values.MaxOccurrence
@@ -41,6 +42,11 @@ enum class Abilities(
         text = AbilityTexts.Hold,
         maxOccurrence = MaxOccurrences.Hold,
         image = Res.drawable.hold
+    ),
+    Totteoki(
+        text = AbilityTexts.Totteoki,
+        maxOccurrence = MaxOccurrences.Totteoki,
+        image = Res.drawable.totteoki
     )
     ;
 

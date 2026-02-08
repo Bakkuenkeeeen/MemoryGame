@@ -14,6 +14,7 @@ class OnTurnEndEffectHandlerParam(
  */
 interface OnTurnEndEffectHandler : EffectHandler<OnTurnEndEffectHandlerParam> {
     companion object {
+        const val PRIORITY_FIELD_TOTTEOKI = 0
         const val PRIORITY_HOLD = 0
 
         // ターン終了時に効果が切れる系の能力は最後に発動するようにしておく

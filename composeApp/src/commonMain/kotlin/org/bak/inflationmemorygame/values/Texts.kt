@@ -20,6 +20,12 @@ enum class AbilityTexts(override val displayName: String, override val descripti
     Hold(
         "ホールド",
         "表になっているカードのうち1枚が、ターン終了後も表のまま残る。"
+    ),
+    Totteoki(
+        "とっておき",
+        "このカードは、表のまま残り続ける。\n" +
+                "揃えるまでに終了したターン数に応じて、最大${Params.TOTTEOKI_MAX}回まで、めくれる回数が増える。\n" +
+                "(このカードをめくったターンは数えない。)"
     )
     ;
 }

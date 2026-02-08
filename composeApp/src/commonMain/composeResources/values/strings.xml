@@ -25,5 +25,5 @@
     <string name="message_ability_lost_suffix">を失った</string>
     <string name="message_effect_activate_suffix">の効果が発動した</string>
     <string name="message_effect_deactivate_suffix">の効果が切れた</string>
-    <string name="message_effect_mistake_suffix">の効果が発動しなかった</string>
+    <string name="message_effect_mistake_suffix">の効果は発動しなかった</string>
 </resources>

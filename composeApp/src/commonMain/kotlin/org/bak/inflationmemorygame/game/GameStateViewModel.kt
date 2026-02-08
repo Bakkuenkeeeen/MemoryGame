@@ -198,13 +198,14 @@ class GameStateViewModel(
 
     private suspend fun endAndStartNextTurn() {
         // ステージ効果発動
+        dispatchAllEffectHandlersFromStage(
+            handler = { it.onTurnEnd() },
+            param = OnTurnEndEffectHandlerParam(stageState = currentStage, player = currentPlayer)
+        )
         // 獲得済み能力の効果発動
         dispatchAllEffectHandlersFromPlayer(
             handler = { it.onTurnEnd() },
-            param = OnTurnEndEffectHandlerParam(
-                stageState = currentStage,
-                player = currentPlayer
-            )
+            param = OnTurnEndEffectHandlerParam(stageState = currentStage, player = currentPlayer)
         )
         val waiters = currentStage.cards.filter {
             !it.isMatched && it.isFaceUp &&
@@ -308,7 +309,7 @@ class GameStateViewModel(
                     appendLog(log = Logs.LevelUp(card.displayName))
                 }
             } else {
-                card.earnedAbilityFactory().also {
+                card.gainAbility()?.also {
                     currentPlayer.addAbility(ability = it)
                     appendLog(log = Logs.Match(card.displayName))
                 }
@@ -317,7 +318,7 @@ class GameStateViewModel(
 
             // 能力獲得時の効果発動
             // 獲得した能力
-            ability.onEarn()?.let { handler ->
+            ability?.onEarn()?.let { handler ->
                 dispatchEffectHandler(
                     handler,
                     param = OnAbilityEarnEffectHandlerParam(earnedPlayer = currentPlayer)
