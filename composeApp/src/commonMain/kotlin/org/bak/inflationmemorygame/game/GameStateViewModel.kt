@@ -17,11 +17,13 @@ import org.bak.inflationmemorygame.Settings
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
-import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
-import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
-import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
-import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
-import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.abilities.EffectHandlerResults
+import org.bak.inflationmemorygame.abilities.GrowAbility
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandlerParam
 import org.bak.inflationmemorygame.components.VisualEffects
 import org.bak.inflationmemorygame.dialogs.DialogState
 import org.bak.inflationmemorygame.dialogs.Dialogs
@@ -106,24 +108,22 @@ class GameStateViewModel(
         appendLog(log = Logs.StartTurn(currentStage.turns))
 
         // 場札の効果発動
-        dispatchAllEffectHandlersFromStage(handler = { it.onTurnStart() }, dispatcher = {
-            it.dispatch(
-                param = OnTurnStartEffectHandler.Param(
-                    stageState = currentStage,
-                    nextPlayer = currentPlayer
-                )
+        dispatchAllEffectHandlersFromStage(
+            handler = { it.onTurnStart() },
+            param = OnTurnStartEffectHandlerParam(
+                stageState = currentStage,
+                nextPlayer = currentPlayer
             )
-        })
+        )
 
         // 獲得済み能力の効果発動
-        dispatchAllEffectHandlersFromPlayer(handler = { it.onTurnStart() }, dispatcher = {
-            it.dispatch(
-                param = OnTurnStartEffectHandler.Param(
-                    stageState = currentStage,
-                    nextPlayer = currentPlayer
-                )
+        dispatchAllEffectHandlersFromPlayer(
+            handler = { it.onTurnStart() },
+            param = OnTurnStartEffectHandlerParam(
+                stageState = currentStage,
+                nextPlayer = currentPlayer
             )
-        })
+        )
 
         // 能力によって表になったカードの処理
         handleAdditionalFlippedCard { unlockScreen() }
@@ -201,17 +201,15 @@ class GameStateViewModel(
         // 獲得済み能力の効果発動
         dispatchAllEffectHandlersFromPlayer(
             handler = { it.onTurnEnd() },
-            dispatcher = {
-                it.dispatch(
-                    param = OnTurnEndEffectHandler.Param(
-                        stageState = currentStage,
-                        player = currentPlayer
-                    )
-                )
-            }
+            param = OnTurnEndEffectHandlerParam(
+                stageState = currentStage,
+                player = currentPlayer
+            )
         )
-        // TODO 表のままにしておくカードの制御
-        val waiters = currentStage.cards.filter { !it.isMatched && it.isFaceUp }.map { card ->
+        val waiters = currentStage.cards.filter {
+            !it.isMatched && it.isFaceUp &&
+                    keepFlippedCards.all { keep -> keep.instanceId != it.instanceId }
+        }.map { card ->
             viewModelScope.launch {
                 applyOneTimeVisualEffects(
                     card = card,
@@ -224,6 +222,7 @@ class GameStateViewModel(
             }
         }
         waiters.joinAll()
+        keepFlippedCards.clear()
         // delay(Constants.FLIP_ANIMATION_DURATION_MILLIS.toLong())
         startTurn()
     }
@@ -254,23 +253,17 @@ class GameStateViewModel(
         // カードをめくったとき(ペア判定前)の効果発動
         // めくられたカード側
         card.onCardFlip()?.let {
-            it.dispatch(OnCardFlipEffectHandler.Param(this, card))
+            it.dispatch(OnCardFlipEffectHandlerParam(this, card))
             delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
         }
         // 獲得済み能力側
         dispatchAllEffectHandlersFromPlayer(
             handler = { it.onCardFlip() },
-            dispatcher = {
-                it.dispatch(param = OnCardFlipEffectHandler.Param(this, card))
-            }
+            param = OnCardFlipEffectHandlerParam(this, card)
         )
 
         // ペア成立判定
-        val matchedCard = currentPlayer.flippedCards.find {
-            // 同種の別カードで、かつ未獲得のカードを探す
-            card.displayName == it.displayName && card.instanceId != it.instanceId &&
-                    !it.isMatched
-        }
+        val matchedCard = currentStage.findMatchedCard(card = card)
         if (matchedCard == null) {
             // TODO ペア不成立時の効果発動
             // card.onPairUnmatch
@@ -293,7 +286,6 @@ class GameStateViewModel(
             })
             waiters.joinAll()
             // currentStage.onPairMatch(card = card, matchedCard = matchedCard)
-            appendLog(log = Logs.Match(card.displayName))
             // delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
             // ペア成立時の効果発動
@@ -301,20 +293,26 @@ class GameStateViewModel(
             // 獲得済み能力側
             dispatchAllEffectHandlersFromPlayer(
                 handler = { it.onPairMatch() },
-                dispatcher = {
-                    it.dispatch(
-                        param = OnPairMatchEffectHandler.Param(
-                            player = currentPlayer,
-                            flippedCard = card,
-                            matchedCard = matchedCard
-                        )
-                    )
-                }
+                param = OnPairMatchEffectHandlerParam(
+                    player = currentPlayer,
+                    flippedCard = card,
+                    matchedCard = matchedCard
+                )
             )
 
-            // 能力獲得
-            val ability = card.onEarn()
-            currentPlayer.addAbility(ability = ability)
+            // 能力獲得orレベルアップ
+            val earned = currentPlayer.earnedAbilities.find { it.displayName == card.displayName }
+            val ability = if (earned is GrowAbility) {
+                earned.also {
+                    it.levelUp()
+                    appendLog(log = Logs.LevelUp(card.displayName))
+                }
+            } else {
+                card.earnedAbilityFactory().also {
+                    currentPlayer.addAbility(ability = it)
+                    appendLog(log = Logs.Match(card.displayName))
+                }
+            }
             delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
             // 能力獲得時の効果発動
@@ -322,7 +320,7 @@ class GameStateViewModel(
             ability.onEarn()?.let { handler ->
                 dispatchEffectHandler(
                     handler,
-                    dispatcher = { it.dispatch(param = OnAbilityEarnEffectHandler.Param(earnedPlayer = currentPlayer)) }
+                    param = OnAbilityEarnEffectHandlerParam(earnedPlayer = currentPlayer)
                 )
             }
             // TODO 獲得前に持っていた能力
@@ -355,58 +353,81 @@ class GameStateViewModel(
         appendLog(log = Logs.NotFlippable())
     }
 
-    private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromStage(
+    private suspend fun <TParam : EffectHandler.Param> dispatchAllEffectHandlersFromStage(
         stage: StageState = currentStage,
-        handler: (AbilityCard) -> T?,
-        dispatcher: (T) -> R,
-        action: suspend (R) -> Unit = {}
+        handler: (AbilityCard) -> EffectHandler<TParam>?,
+        param: TParam
     ) {
         dispatchAllEffectHandlers(
             handlers = stage.cards.mapNotNull { handler(it) },
-            dispatcher = dispatcher,
-            action = action
+            param = param
         )
     }
 
-    private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlersFromPlayer(
+    private suspend fun <TParam : EffectHandler.Param> dispatchAllEffectHandlersFromPlayer(
         player: PlayerState = currentPlayer,
-        handler: (EarnedAbility) -> T?,
-        dispatcher: suspend (T) -> R,
-        action: suspend (R) -> Unit = {}
+        handler: (EarnedAbility) -> EffectHandler<TParam>?,
+        param: TParam
     ) {
         dispatchAllEffectHandlers(
             handlers = player.earnedAbilities.mapNotNull { handler(it) },
-            dispatcher = dispatcher,
-            action = action
+            param = param
         )
     }
 
-    private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchAllEffectHandlers(
-        handlers: Collection<T>,
-        dispatcher: suspend (T) -> R,
-        action: suspend (R) -> Unit = {}
+    private suspend fun <TParam : EffectHandler.Param> dispatchAllEffectHandlers(
+        handlers: Collection<EffectHandler<TParam>>,
+        param: TParam
     ) {
         handlers.sortedBy { it.priority }.forEach { handler ->
-            dispatchEffectHandler(handler, dispatcher, action)
+            dispatchEffectHandler(handler = handler, param = param)
         }
     }
 
-    private suspend fun <T : EffectHandler, R : EffectHandler.Result> dispatchEffectHandler(
-        handler: T,
-        dispatcher: suspend (T) -> R,
-        action: suspend (R) -> Unit = {}
+    private suspend fun <TParam : EffectHandler.Param> dispatchEffectHandler(
+        handler: EffectHandler<TParam>,
+        param: TParam
     ) {
-        val result = dispatcher(handler).also {
-            it.log?.let { log -> appendLog(log) }
-            it.gainedEffects.forEach { effect -> currentPlayer.onEffectGain(effect = effect) }
-            it.lostEffectParentInstanceIds.forEach { instanceId ->
-                currentPlayer.onEffectLost(parentAbilityInstanceId = instanceId)
+        val results = handler.dispatch(param = param)
+        results.forEach { result ->
+            when (result) {
+                is EffectHandlerResults.PrintLog -> {
+                    appendLog(result.log)
+                }
+
+                is EffectHandlerResults.GainStatusEffect -> {
+                    currentPlayer.onEffectGain(result.effect)
+                }
+
+                is EffectHandlerResults.LostStatusEffect -> {
+                    currentPlayer.onEffectLost(result.parentInstanceId)
+                }
+
+                is EffectHandlerResults.ApplyVisualEffect -> {
+                    currentStage.cards.find { it.instanceId == result.targetInstanceId }?.let {
+                        applyOneTimeVisualEffects(
+                            card = it,
+                            effect = result.visualEffect,
+                            awaitCompletion = result.awaitCompletion
+                        )
+                    }
+                }
+
+                is EffectHandlerResults.KeepFlipped -> {
+                    currentStage.cards.find { it.instanceId == result.targetInstanceId }?.let {
+                        keepFlippedCards.add(it)
+                    }
+                }
+
+                is EffectHandlerResults.ReverseCard -> {
+                    currentStage.cards.find { it.instanceId == result.targetInstanceId }
+                        ?.changeSurface(isFaceUp = false)
+                }
             }
-            additionalFlippedCards.addAll(it.additionalFlippedCards)
         }
-        action(result)
-        delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
     }
+
+    private val keepFlippedCards = mutableListOf<AbilityCard>()
 
     suspend fun applyOneTimeVisualEffects(
         card: AbilityCard,

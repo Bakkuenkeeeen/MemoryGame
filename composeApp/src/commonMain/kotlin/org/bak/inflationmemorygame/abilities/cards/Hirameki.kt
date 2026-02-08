@@ -3,20 +3,22 @@ package org.bak.inflationmemorygame.abilities.cards
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
-import org.bak.inflationmemorygame.abilities.EffectHandler
+import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
-import org.bak.inflationmemorygame.logs.Logs
 import org.bak.inflationmemorygame.components.VisualEffects
+import org.bak.inflationmemorygame.logs.Logs
 
-class HiramekiCard : AbilityCard.NoFieldEffect(actual = Abilities.Hirameki) {
-    override fun onEarn(): EarnedAbility = HiramekiAbility()
-}
+class HiramekiCard : AbilityCard.NoFieldEffect(
+    ability = Abilities.Hirameki,
+    earnedAbilityFactory = ::HiramekiAbility
+)
 
-class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
+class HiramekiAbility : EarnedAbility(ability = Abilities.Hirameki) {
     override fun onEarn(): OnAbilityEarnEffectHandler? {
         changeEffectState(to = EffectState.Ready)
         return null
@@ -25,28 +27,25 @@ class HiramekiAbility : EarnedAbility(actual = Abilities.Hirameki) {
     override fun onCardFlip(): OnCardFlipEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {
             return object : OnCardFlipEffectHandler {
-                override val priority: Int = EffectHandler.PRIORITY_DEFAULT
-                override suspend fun dispatch(param: OnCardFlipEffectHandler.Param): EffectHandler.Result {
+                override val priority: Int = OnCardFlipEffectHandler.PRIORITY_HIRAMEKI
+                override suspend fun dispatch(param: OnCardFlipEffectHandlerParam): List<EffectHandlerResults> {
                     // 未獲得かつめくられていないカードを探す
                     val match = param.gameStateViewModel.currentStage.cards.filter {
                         !it.isMatched && !it.isFaceUp &&
                                 it.displayName == param.flippedCard.displayName &&
                                 it.instanceId != param.flippedCard.instanceId
                     }.randomOrNull()
-                    val log = if (match == null) {
+                    return if (match == null) {
                         // 対象がなければ再使用可能にしておく
                         changeEffectState(to = EffectState.Ready)
-                        Logs.EffectMistake(displayName)
+                        EffectHandlerResults.PrintLog.onMistake(name = displayName)
                     } else {
                         changeEffectState(to = EffectState.End)
-                        param.gameStateViewModel.applyOneTimeVisualEffects(
-                            card = match,
-                            effect = VisualEffects.Ripple(),
-                            awaitCompletion = false
-                        )
-                        Logs.EffectActivate(displayName)
+                        EffectHandlerResults.ApplyVisualEffect(
+                            targetInstanceId = match.instanceId,
+                            visualEffect = VisualEffects.Ripple()
+                        ).withLog(Logs.EffectActivate(name = displayName))
                     }
-                    return EffectHandler.Result(log = log)
                 }
             }
         }

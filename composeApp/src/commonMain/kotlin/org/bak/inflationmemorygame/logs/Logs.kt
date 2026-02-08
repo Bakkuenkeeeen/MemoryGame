@@ -14,10 +14,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import inflationmemorygame.composeapp.generated.resources.Res
+import inflationmemorygame.composeapp.generated.resources.message_ability_level_down_suffix
 import inflationmemorygame.composeapp.generated.resources.message_discover_suffix
 import inflationmemorygame.composeapp.generated.resources.message_effect_activate_suffix
 import inflationmemorygame.composeapp.generated.resources.message_effect_deactivate_suffix
 import inflationmemorygame.composeapp.generated.resources.message_effect_mistake_suffix
+import inflationmemorygame.composeapp.generated.resources.message_ability_level_up_suffix
+import inflationmemorygame.composeapp.generated.resources.message_ability_lost_suffix
 import inflationmemorygame.composeapp.generated.resources.message_match_suffix
 import inflationmemorygame.composeapp.generated.resources.message_progress_not_flippable
 import inflationmemorygame.composeapp.generated.resources.message_stage_progress_prefix
@@ -119,6 +122,27 @@ sealed class Logs(
         color = Colors.MatchMessageColor,
         parameter = name,
         suffixRes = Res.string.message_match_suffix
+    )
+
+    class LevelUp(name: String) : Logs(
+        tag = Res.string.message_tag_match,
+        color = Colors.MatchMessageColor,
+        parameter = name,
+        suffixRes = Res.string.message_ability_level_up_suffix
+    )
+
+    class LevelDown(name: String) : Logs(
+        tag = Res.string.message_tag_match,
+        color = Colors.MatchMessageColor,
+        parameter = name,
+        suffixRes = Res.string.message_ability_level_down_suffix
+    )
+
+    class Lost(name: String) : Logs(
+        tag = Res.string.message_tag_match,
+        color = Colors.MatchMessageColor,
+        parameter = name,
+        suffixRes = Res.string.message_ability_lost_suffix
     )
 
     class EffectActivate(name: String) : Logs(

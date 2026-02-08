@@ -1,11 +1,13 @@
 package org.bak.inflationmemorygame.abilities.handlers
 
 import org.bak.inflationmemorygame.abilities.EffectHandler
+import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.game.PlayerState
 
-interface OnAbilityEarnEffectHandler : EffectHandler {
+class OnAbilityEarnEffectHandlerParam(val earnedPlayer: PlayerState) : EffectHandler.Param
 
-    fun dispatch(param: Param): EffectHandler.Result
-
-    class Param(val earnedPlayer: PlayerState)
+interface OnAbilityEarnEffectHandler : EffectHandler<OnAbilityEarnEffectHandlerParam> {
+    companion object {
+        const val PRIORITY_PLUS_ONE = 0
+    }
 }

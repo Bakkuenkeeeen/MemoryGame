@@ -1,0 +1,69 @@
+package org.bak.inflationmemorygame.abilities.cards
+
+import org.bak.inflationmemorygame.abilities.Abilities
+import org.bak.inflationmemorygame.abilities.AbilityCard
+import org.bak.inflationmemorygame.abilities.EffectHandlerResults
+import org.bak.inflationmemorygame.abilities.GrowAbility
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.logs.Logs
+
+class HoldCard : AbilityCard.NoFieldEffect(
+    ability = Abilities.Hold,
+    earnedAbilityFactory = ::HoldAbility
+)
+
+class HoldAbility : GrowAbility(ability = Abilities.Hold) {
+
+    private val holdCards = mutableListOf<Long>()
+
+    override fun onEarn(): OnAbilityEarnEffectHandler? = null
+    override fun onTurnStart(): OnTurnStartEffectHandler? = null
+    override fun onCardFlip(): OnCardFlipEffectHandler? = null
+    override fun onPairMatch(): OnPairMatchEffectHandler? = null
+
+    override fun onTurnEnd(): OnTurnEndEffectHandler {
+        changeEffectState(to = EffectState.Active)
+        return object : OnTurnEndEffectHandler {
+            override val priority: Int = OnTurnEndEffectHandler.PRIORITY_HOLD
+            override suspend fun dispatch(param: OnTurnEndEffectHandlerParam): List<EffectHandlerResults> {
+                // 前のターンまでの結果は、ここでクリア
+                // (ターン内に別な効果でレベルが下がったときの参照用に残しておく必要がある)
+                holdCards.clear()
+                holdCards.addAll(
+                    param.stageState.cards
+                        .filter { it.isFaceUp && !it.isMatched }
+                        .shuffled()
+                        .take(level)
+                        .map { it.instanceId }
+                )
+                val log = if (holdCards.isEmpty()) {
+                    Logs.EffectMistake(name = displayName)
+                } else {
+                    Logs.EffectActivate(name = displayName)
+                }
+                return listOf(EffectHandlerResults.PrintLog(log)) + holdCards.map {
+                    EffectHandlerResults.KeepFlipped(it)
+                }
+            }
+        }
+    }
+
+    override fun onLevelDown(): OnAbilityLostEffectHandler {
+        return object : OnAbilityLostEffectHandler {
+            override val priority: Int = OnAbilityLostEffectHandler.PRIORITY_HOLD_LEVEL_DOWN
+            override suspend fun dispatch(param: OnAbilityLostEffectHandlerParam): List<EffectHandlerResults> {
+                val removed = holdCards.random()
+                holdCards.remove(removed)
+                return EffectHandlerResults.ReverseCard(targetInstanceId = removed)
+                    .withLog(Logs.LevelDown(name = displayName))
+            }
+        }
+    }
+}

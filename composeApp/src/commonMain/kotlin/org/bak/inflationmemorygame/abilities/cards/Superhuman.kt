@@ -3,21 +3,23 @@ package org.bak.inflationmemorygame.abilities.cards
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
-import org.bak.inflationmemorygame.abilities.EffectHandler
+import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandlerParam
+import org.bak.inflationmemorygame.logs.Logs
 
-class SuperhumanCard : AbilityCard.NoFieldEffect(actual = Abilities.Superhuman) {
-    override fun onEarn(): EarnedAbility {
-        return SuperhumanAbility()
-    }
-}
+class SuperhumanCard : AbilityCard.NoFieldEffect(
+    ability = Abilities.Superhuman,
+    earnedAbilityFactory = ::SuperhumanAbility
+)
 
-class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
+class SuperhumanAbility : EarnedAbility(ability = Abilities.Superhuman) {
     override fun onEarn(): OnAbilityEarnEffectHandler? {
         changeEffectState(to = EffectState.Ready)
         return null
@@ -27,15 +29,14 @@ class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {
             return object : OnTurnStartEffectHandler {
                 override val priority: Int = OnTurnStartEffectHandler.PRIORITY_SUPERHUMAN
-                override fun dispatch(param: OnTurnStartEffectHandler.Param): EffectHandler.Result {
-                    return EffectHandler.Result(
-                        abilityName = displayName,
-                        gainedEffect = StatusEffect(
+                override suspend fun dispatch(param: OnTurnStartEffectHandlerParam): List<EffectHandlerResults> {
+                    return EffectHandlerResults.GainStatusEffect(
+                        effect = StatusEffect(
                             parentAbilityInstanceId = instanceId,
                             amount = param.nextPlayer.maxFlipCount,
                             calculationType = StatusEffect.CalculationType.Add
                         )
-                    )
+                    ).withLog(Logs.EffectActivate(name = displayName))
                 }
             }
         }
@@ -48,12 +49,10 @@ class SuperhumanAbility : EarnedAbility(actual = Abilities.Superhuman) {
     override fun onTurnEnd(): OnTurnEndEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Active, to = EffectState.End)) {
             return object : OnTurnEndEffectHandler {
-                override val priority: Int = EffectHandler.PRIORITY_DEFAULT
-                override fun dispatch(param: OnTurnEndEffectHandler.Param): EffectHandler.Result {
-                    return EffectHandler.Result(
-                        abilityName = displayName,
-                        lostEffectParentInstanceId = instanceId
-                    )
+                override val priority: Int = OnTurnEndEffectHandler.PRIORITY_SUPERHUMAN
+                override suspend fun dispatch(param: OnTurnEndEffectHandlerParam): List<EffectHandlerResults> {
+                    return EffectHandlerResults.LostStatusEffect(parentInstanceId = instanceId)
+                        .withLog(Logs.EffectDeactivate(name = displayName))
                 }
             }
         }

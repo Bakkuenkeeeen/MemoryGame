@@ -2,6 +2,7 @@ package org.bak.inflationmemorygame.abilities
 
 import inflationmemorygame.composeapp.generated.resources.Res
 import inflationmemorygame.composeapp.generated.resources.hirameki
+import inflationmemorygame.composeapp.generated.resources.hold
 import inflationmemorygame.composeapp.generated.resources.oikaze
 import inflationmemorygame.composeapp.generated.resources.plus_one
 import inflationmemorygame.composeapp.generated.resources.superhuman
@@ -35,6 +36,11 @@ enum class Abilities(
         text = AbilityTexts.Hirameki,
         maxOccurrence = MaxOccurrences.Hirameki,
         image = Res.drawable.hirameki
+    ),
+    Hold(
+        text = AbilityTexts.Hold,
+        maxOccurrence = MaxOccurrences.Hold,
+        image = Res.drawable.hold
     )
     ;
 

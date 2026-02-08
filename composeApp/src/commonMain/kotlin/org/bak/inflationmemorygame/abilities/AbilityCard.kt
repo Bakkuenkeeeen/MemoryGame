@@ -11,7 +11,10 @@ import org.bak.inflationmemorygame.components.VisualEffects
 import kotlin.random.Random
 
 @Stable
-abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
+abstract class AbilityCard(
+    ability: Abilities,
+    val earnedAbilityFactory: () -> EarnedAbility
+) : Ability by ability {
 
     /** 盤面上の同一の能力を区別するためのID. */
     val instanceId: Long = Random.nextLong()
@@ -48,11 +51,11 @@ abstract class AbilityCard(private val actual: Abilities) : Ability by actual {
         visualEffects.remove(effect)
     }
 
-    abstract fun onEarn(): EarnedAbility
     abstract fun onTurnStart(): OnTurnStartEffectHandler?
     abstract fun onCardFlip(): OnCardFlipEffectHandler?
 
-    abstract class NoFieldEffect(actual: Abilities) : AbilityCard(actual = actual) {
+    abstract class NoFieldEffect(ability: Abilities, earnedAbilityFactory: () -> EarnedAbility) :
+        AbilityCard(ability = ability, earnedAbilityFactory = earnedAbilityFactory) {
         override fun onTurnStart(): OnTurnStartEffectHandler? = null
         override fun onCardFlip(): OnCardFlipEffectHandler? = null
     }

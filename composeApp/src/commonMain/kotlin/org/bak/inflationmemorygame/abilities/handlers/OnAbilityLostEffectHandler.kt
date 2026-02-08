@@ -3,8 +3,12 @@ package org.bak.inflationmemorygame.abilities.handlers
 import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.game.PlayerState
 
-interface OnAbilityLostEffectHandler: EffectHandler {
-    fun dispatch(param: Param): EffectHandler.Result
+class OnAbilityLostEffectHandlerParam(val owner: PlayerState) : EffectHandler.Param
 
-    class Param(val owner: PlayerState)
+interface OnAbilityLostEffectHandler : EffectHandler<OnAbilityLostEffectHandlerParam> {
+    companion object {
+        const val PRIORITY_DEFAULT = 0
+
+        const val PRIORITY_HOLD_LEVEL_DOWN = 0
+    }
 }

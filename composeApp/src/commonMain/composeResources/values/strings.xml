@@ -20,6 +20,9 @@
     <string name="message_progress_not_flippable">このターンは、もうめくれない</string>
     <string name="message_discover_suffix">を発見した</string>
     <string name="message_match_suffix">を獲得した</string>
+    <string name="message_ability_level_up_suffix">のレベルが上がった</string>
+    <string name="message_ability_level_down_suffix">のレベルが下がった</string>
+    <string name="message_ability_lost_suffix">を失った</string>
     <string name="message_effect_activate_suffix">の効果が発動した</string>
     <string name="message_effect_deactivate_suffix">の効果が切れた</string>
     <string name="message_effect_mistake_suffix">の効果が発動しなかった</string>

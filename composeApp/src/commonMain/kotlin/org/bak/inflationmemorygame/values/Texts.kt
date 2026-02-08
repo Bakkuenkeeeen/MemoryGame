@@ -16,6 +16,10 @@ enum class AbilityTexts(override val displayName: String, override val descripti
     Hirameki(
         "ひらめき",
         "次にめくるカードの相方の位置が分かる。"
+    ),
+    Hold(
+        "ホールド",
+        "表になっているカードのうち1枚が、ターン終了後も表のまま残る。"
     )
     ;
 }
