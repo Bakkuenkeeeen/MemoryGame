@@ -3,6 +3,20 @@
     <string name="separator_big_bold">[bb]</string>
     <string name="separator_color">[co]</string>
 
+    <string name="name_plus_one">プラスワン</string>
+    <string name="description_plus_one">めくれる回数が[bb]%1$d回[bb]増える。</string>
+    <string name="name_superhuman">超人化</string>
+    <string name="description_superhuman">次のターン開始時に、めくれる回数を[bb]%1$d倍[bb]にする。</string>
+    <string name="name_oikaze">追い風</string>
+    <string name="description_oikaze">カードを揃えたとき、めくれる回数が1回増える。\n1ターン内に[bb]%1$d回[bb]まで発動し、ターン終了時に元に戻る。</string>
+    <string name="name_hirameki">ひらめき</string>
+    <string name="description_hirameki">カードを[bb]%1$d枚[bb]めくるたび、めくったカードのペアになるカードの位置が分かる。</string>
+    <string name="name_hold">ホールド</string>
+    <string name="description_hold">表になっているカードのうち[bb]%1$d枚[bb]が、ターン終了時に表のまま残る。</string>
+    <string name="name_totteoki">とっておき</string>
+    <string name="description_totteoki">このカードは、表のまま残り続ける。\n揃えるまでに終了したターン数に応じて、最大%1$d回まで、めくれる回数が増える。\n(このカードをめくったターンは数えない。)</string>
+    <string name="description_totteoki_appendix">\n\n現在の蓄積数 : [bb]%1$d[bb]</string>
+
     <string name="confirm_end_turn_title">まだ、カードをめくれます</string>
     <string name="confirm_end_turn_message">ターンを終了しますか？</string>
     <string name="confirm_auto_flip_title">このターン、自動でめくり続けます</string>

@@ -15,8 +15,9 @@ object Constants {
     const val CARDS_IN_EACH_ROW_COMPACT = 5
     const val CARDS_IN_EACH_ROW_WIDE = 10
 
-    const val LOG_FONT_SIZE_NORMAL = 12
-    const val LOG_LINE_HEIGHT_NORMAL = 14
-    const val LOG_FONT_SIZE_BIG = 14
-    const val LOG_LINE_HEIGHT_BIG = 16
+    const val FONT_SIZE_NORMAL_LOG = 12
+    const val BIG_FONT_SIZE_AMOUNT_LOG = 2
+    const val FONT_SIZE_CARD_DETAIL_DIALOG_NORMAL = 14
+    const val BIG_FONT_SIZE_AMOUNT_DIALOG = 4
+    const val LINE_SPACING_DEFAULT = 2
 }

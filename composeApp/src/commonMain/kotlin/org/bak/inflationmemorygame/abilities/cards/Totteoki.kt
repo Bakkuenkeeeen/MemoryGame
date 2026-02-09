@@ -1,5 +1,8 @@
 package org.bak.inflationmemorygame.abilities.cards
 
+import androidx.compose.runtime.Composable
+import inflationmemorygame.composeapp.generated.resources.Res
+import inflationmemorygame.composeapp.generated.resources.description_totteoki_appendix
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
@@ -8,13 +11,16 @@ import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnLevelUpEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.logs.Logs
 import org.bak.inflationmemorygame.values.Params
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 import kotlin.math.min
 
@@ -27,10 +33,13 @@ class TotteokiCard : AbilityCard(ability = Abilities.Totteoki) {
     }
 
     override val description: String
-        get() = if (turns == -1) {
+        @Composable get() = if (turns == -1) {
             super.description
         } else {
-            super.description + "\n\n現在の蓄積数 : ${max(0, turns)}"
+            super.description + stringResource(
+                Res.string.description_totteoki_appendix,
+                max(0, turns)
+            )
         }
 
     override fun gainAbility(): Result<EarnedAbility> {
@@ -68,7 +77,7 @@ class TotteokiAbility(private val amount: Int) : EarnedAbility(ability = Abiliti
             override val priority: Int = OnAbilityEarnEffectHandler.PRIORITY_TOTTEOKI
             override suspend fun dispatch(param: OnAbilityEarnEffectHandlerParam) =
                 buildEffectHandlerResults {
-                    printLog(Logs.gainStatusEffect(name = displayName))
+                    printLog(Logs.gainStatusEffect { displayName })
                     gainStatusEffect(
                         effect = StatusEffect(
                             parentAbilityInstanceId = instanceId,
@@ -80,8 +89,15 @@ class TotteokiAbility(private val amount: Int) : EarnedAbility(ability = Abiliti
         }
     }
 
+    override fun onLevelUp(amount: Int): OnLevelUpEffectHandler {
+        TODO("最大レベル1")
+    }
+
     override fun onTurnStart(): OnTurnStartEffectHandler? = null
     override fun onCardFlip(): OnCardFlipEffectHandler? = null
     override fun onPairMatch(): OnPairMatchEffectHandler? = null
     override fun onTurnEnd(): OnTurnEndEffectHandler? = null
+    override fun onLevelDown(): OnAbilityLostEffectHandler? {
+        TODO("最大レベル1")
+    }
 }

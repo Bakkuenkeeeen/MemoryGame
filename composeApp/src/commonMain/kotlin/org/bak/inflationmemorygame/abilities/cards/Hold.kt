@@ -2,13 +2,14 @@ package org.bak.inflationmemorygame.abilities.cards
 
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
+import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
-import org.bak.inflationmemorygame.abilities.GrowAbility
 import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnLevelUpEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
@@ -20,11 +21,12 @@ class HoldCard : AbilityCard.NoFieldEffect(
     earnedAbilityFactory = ::HoldAbility
 )
 
-class HoldAbility : GrowAbility(ability = Abilities.Hold) {
+class HoldAbility : EarnedAbility(ability = Abilities.Hold) {
 
     private val holdCards = mutableListOf<Long>()
 
     override fun onEarn(): OnAbilityEarnEffectHandler? = null
+    override fun onLevelUp(amount: Int) = OnLevelUpEffectHandler.NoAction
     override fun onTurnStart(): OnTurnStartEffectHandler? = null
     override fun onCardFlip(): OnCardFlipEffectHandler? = null
     override fun onPairMatch(): OnPairMatchEffectHandler? = null
@@ -46,9 +48,9 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
                 )
                 return buildEffectHandlerResults {
                     if (holdCards.isEmpty()) {
-                        printLog(Logs.effectMistake(name = displayName))
+                        printLog(Logs.effectMistake { displayName })
                     } else {
-                        printLog(Logs.gainStatusEffect(name = displayName))
+                        printLog(Logs.gainStatusEffect { displayName })
                         holdCards.forEach {
                             keepFlipped(targetInstanceId = it)
                         }
@@ -63,7 +65,7 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
             override val priority: Int = OnAbilityLostEffectHandler.PRIORITY_HOLD_LEVEL_DOWN
             override suspend fun dispatch(param: OnAbilityLostEffectHandlerParam): List<EffectHandlerResults> {
                 return buildEffectHandlerResults {
-                    printLog(Logs.levelDown(name = displayName))
+                    printLog(Logs.levelDown { displayName })
                     reverseCard(targetInstanceId = holdCards.random().also {
                         holdCards.remove(it)
                     })

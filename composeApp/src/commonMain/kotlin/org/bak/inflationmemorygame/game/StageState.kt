@@ -51,7 +51,7 @@ class StageState(val stage: Int = 1) {
     }
 
     fun findMatchedCard(card: AbilityCard): AbilityCard? = cards.find {
-        card.displayName == it.displayName &&
+        card.id == it.id &&
                 card.instanceId != it.instanceId &&
                 it.isFaceUp &&
                 !it.isMatched

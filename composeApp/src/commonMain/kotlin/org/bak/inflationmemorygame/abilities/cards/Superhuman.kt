@@ -6,7 +6,9 @@ import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnAbilityLostEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandler
+import org.bak.inflationmemorygame.abilities.handlers.OnLevelUpEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandler
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
@@ -25,13 +27,17 @@ class SuperhumanAbility : EarnedAbility(ability = Abilities.Superhuman) {
         return null
     }
 
+    override fun onLevelUp(amount: Int): OnLevelUpEffectHandler {
+        TODO("レベル上がらない想定")
+    }
+
     override fun onTurnStart(): OnTurnStartEffectHandler? {
         if (tryChangeEffectState(from = EffectState.Ready, to = EffectState.Active)) {
             return object : OnTurnStartEffectHandler {
                 override val priority: Int = OnTurnStartEffectHandler.PRIORITY_SUPERHUMAN
                 override suspend fun dispatch(param: OnTurnStartEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.gainStatusEffect(name = displayName))
+                        printLog(Logs.gainStatusEffect { displayName })
                         gainStatusEffect(
                             effect = StatusEffect(
                                 parentAbilityInstanceId = instanceId,
@@ -54,11 +60,15 @@ class SuperhumanAbility : EarnedAbility(ability = Abilities.Superhuman) {
                 override val priority: Int = OnTurnEndEffectHandler.PRIORITY_SUPERHUMAN
                 override suspend fun dispatch(param: OnTurnEndEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.lostStatusEffect(name = displayName))
+                        printLog(Logs.lostStatusEffect { displayName })
                         lostStatusEffect(parentInstanceId = instanceId)
                     }
             }
         }
         return null
+    }
+
+    override fun onLevelDown(): OnAbilityLostEffectHandler? {
+        TODO("レベル下がらない想定")
     }
 }

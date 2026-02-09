@@ -15,22 +15,26 @@ import org.jetbrains.compose.resources.stringResource
 fun String.toVertical() = map { it }.joinToString(separator = "\n")
 
 @Composable
-fun String.applyInnerAttributes() = buildAnnotatedString {
+fun String.applyInnerAttributes(
+    normalFontSize: Int,
+    bigFontSizeAmount: Int,
+    lineSpacing: Int = Constants.LINE_SPACING_DEFAULT
+) = buildAnnotatedString {
     val substrings = split(stringResource(Res.string.separator_big_bold))
     if (substrings.size > 1) {
-        pushStyle(ParagraphStyle(lineHeight = Constants.LOG_LINE_HEIGHT_BIG.sp))
+        pushStyle(ParagraphStyle(lineHeight = (normalFontSize + bigFontSizeAmount + lineSpacing).sp))
     } else {
-        pushStyle(ParagraphStyle(lineHeight = Constants.LOG_LINE_HEIGHT_NORMAL.sp))
+        pushStyle(ParagraphStyle(lineHeight = (normalFontSize + lineSpacing).sp))
     }
     substrings.forEachIndexed { index, substring ->
         if (index % 2 == 0) {
-            withStyle(SpanStyle(fontSize = Constants.LOG_FONT_SIZE_NORMAL.sp)) {
+            withStyle(SpanStyle(fontSize = normalFontSize.sp)) {
                 append(substring)
             }
         } else {
             withStyle(
                 SpanStyle(
-                    fontSize = Constants.LOG_FONT_SIZE_BIG.sp,
+                    fontSize = (normalFontSize + bigFontSizeAmount).sp,
                     fontWeight = FontWeight.Bold
                 )
             ) {

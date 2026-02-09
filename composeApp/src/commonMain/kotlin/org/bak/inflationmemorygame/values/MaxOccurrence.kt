@@ -11,7 +11,7 @@ enum class MaxOccurrences(
 ) : MaxOccurrence {
 
     PlusOne(inGame = 8), // プラスワンだけで10回まで増える
-    Superhuman(inStage = 2),
+    Superhuman(inStage = 1, inGame = 1),
     Oikaze(inStage = 2, inGame = 5),
     Hirameki(inStage = 2),
     Hold(inStage = 2, inGame = 3),

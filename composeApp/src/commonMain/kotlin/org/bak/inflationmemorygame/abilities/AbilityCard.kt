@@ -1,6 +1,7 @@
 package org.bak.inflationmemorygame.abilities
 
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +20,7 @@ abstract class AbilityCard(
 
     open fun gainAbility(): Result<EarnedAbility> {
         return if (earnedAbilityFactory == null) {
-            Result.failure(NotImplementedError("$displayName の獲得処理を実装してください."))
+            Result.failure(NotImplementedError("獲得処理を実装してください."))
         } else {
             Result.success(earnedAbilityFactory())
         }
@@ -32,6 +33,7 @@ abstract class AbilityCard(
     var isFaceUp: Boolean by mutableStateOf(false)
         private set
 
+    /** 獲得済みかどうか. */
     var isMatched: Boolean by mutableStateOf(false)
         private set
 

@@ -26,6 +26,7 @@ import inflationmemorygame.composeapp.generated.resources.log_tag_progress
 import kotlinx.coroutines.Job
 import org.bak.inflationmemorygame.util.applyInnerAttributes
 import org.bak.inflationmemorygame.values.Colors
+import org.bak.inflationmemorygame.values.Constants
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
@@ -35,7 +36,11 @@ class Logs(val category: Category, private val messageBuilder: @Composable () ->
 
     val instanceId = Random.nextLong()
 
-    val message: AnnotatedString @Composable get() = messageBuilder().applyInnerAttributes()
+    val message: AnnotatedString
+        @Composable get() = messageBuilder().applyInnerAttributes(
+            normalFontSize = Constants.FONT_SIZE_NORMAL_LOG,
+            bigFontSizeAmount = Constants.BIG_FONT_SIZE_AMOUNT_LOG
+        )
 
     var visibility by mutableStateOf(Visibility.Appearing)
         private set
@@ -83,36 +88,36 @@ class Logs(val category: Category, private val messageBuilder: @Composable () ->
             stringResource(Res.string.log_not_flippable)
         }
 
-        fun discover(name: String) = Logs(category = Category.Discover) {
-            stringResource(Res.string.log_discover, name)
+        fun discover(name: @Composable () -> String) = Logs(category = Category.Discover) {
+            stringResource(Res.string.log_discover, name())
         }
 
-        fun match(name: String) = Logs(category = Category.Match) {
-            stringResource(Res.string.log_match, name)
+        fun match(name: @Composable () -> String) = Logs(category = Category.Match) {
+            stringResource(Res.string.log_match, name())
         }
 
-        fun levelUp(name: String) = Logs(category = Category.Match) {
-            stringResource(Res.string.log_ability_level_up, name)
+        fun levelUp(name: @Composable () -> String) = Logs(category = Category.Match) {
+            stringResource(Res.string.log_ability_level_up, name())
         }
 
-        fun levelDown(name: String) = Logs(category = Category.Ability) {
-            stringResource(Res.string.log_ability_level_down, name)
+        fun levelDown(name: @Composable () -> String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_ability_level_down, name())
         }
 
-        fun lost(name: String) = Logs(category = Category.Ability) {
-            stringResource(Res.string.log_ability_lost, name)
+        fun lost(name: @Composable () -> String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_ability_lost, name())
         }
 
-        fun gainStatusEffect(name: String) = Logs(category = Category.Ability) {
-            stringResource(Res.string.log_effect_activate, name)
+        fun gainStatusEffect(name: @Composable () -> String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_activate, name())
         }
 
-        fun lostStatusEffect(name: String) = Logs(category = Category.Ability) {
-            stringResource(Res.string.log_effect_deactivate, name)
+        fun lostStatusEffect(name: @Composable () -> String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_deactivate, name())
         }
 
-        fun effectMistake(name: String) = Logs(category = Category.Ability) {
-            stringResource(Res.string.log_effect_mistake, name)
+        fun effectMistake(name: @Composable () -> String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_mistake, name())
         }
     }
 }

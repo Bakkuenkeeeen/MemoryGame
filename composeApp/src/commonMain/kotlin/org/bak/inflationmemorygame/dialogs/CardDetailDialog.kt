@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.bak.inflationmemorygame.components.cardShape
 import org.bak.inflationmemorygame.isWindowWidthCompact
+import org.bak.inflationmemorygame.util.applyInnerAttributes
+import org.bak.inflationmemorygame.values.Constants
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -53,7 +55,10 @@ fun CardDetailDialog(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = abilityDescription,
+                text = abilityDescription.applyInnerAttributes(
+                    normalFontSize = Constants.FONT_SIZE_CARD_DETAIL_DIALOG_NORMAL,
+                    bigFontSizeAmount = Constants.BIG_FONT_SIZE_AMOUNT_DIALOG
+                ),
                 fontSize = 16.sp,
                 color = Color.White,
                 fontWeight = FontWeight.Bold

@@ -19,9 +19,9 @@ import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
 import org.bak.inflationmemorygame.abilities.GainAbilityError
-import org.bak.inflationmemorygame.abilities.GrowAbility
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandlerParam
+import org.bak.inflationmemorygame.abilities.handlers.OnLevelUpEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnPairMatchEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnEndEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandlerParam
@@ -62,7 +62,7 @@ class GameStateViewModel(
     var isPreloading by mutableStateOf(shouldPreload)
         private set
 
-    private val discoveredCards = mutableSetOf<String>()
+    private val discoveredCardIds = mutableSetOf<Int>()
 
     init {
         viewModelScope.launch {
@@ -244,9 +244,9 @@ class GameStateViewModel(
             ),
             awaitCompletion = true
         )
-        appendLog(log = Logs.discover(card.displayName))
+        appendLog(log = Logs.discover { card.displayName })
 
-        if (discoveredCards.add(card.displayName)) {
+        if (discoveredCardIds.add(card.id)) {
             if (settings.shouldShowDetailWhenDiscover) {
                 showDialog(Dialogs.CardDetail(card = card))
             }
@@ -303,33 +303,38 @@ class GameStateViewModel(
             )
 
             // 能力獲得orレベルアップ
-            val earned = currentPlayer.earnedAbilities.find { it.displayName == card.displayName }
-            val ability = if (earned is GrowAbility) {
-                earned.also {
-                    it.levelUp()
-                    appendLog(log = Logs.levelUp(card.displayName))
-                }
-            } else {
+            val levelUpHandler = currentPlayer.earnedAbilities
+                .mapNotNull { it.tryLevelUp(matchedAbility = card) }
+                .singleOrNull()
+            if (levelUpHandler == null) {
+                // 未獲得につき新規獲得、もしくはレベル上限に達しているため2つ目を獲得
                 card.gainAbility().onSuccess {
                     currentPlayer.addAbility(ability = it)
-                    appendLog(log = Logs.match(card.displayName))
+                    appendLog(log = Logs.match { card.displayName })
+                    delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
+                    // 獲得した能力の効果発動
+                    it.onEarn()?.let { handler ->
+                        dispatchEffectHandler(
+                            handler,
+                            param = OnAbilityEarnEffectHandlerParam(earnedPlayer = currentPlayer)
+                        )
+                    }
                 }.onFailure {
                     if (it is GainAbilityError) {
                         appendLog(log = it.log)
+                        delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
                     }
-                }.getOrNull()
-            }
-            delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
-
-            // 能力獲得時の効果発動
-            // 獲得した能力
-            ability?.onEarn()?.let { handler ->
+                }
+            } else {
+                // レベルアップ
+                appendLog(log = Logs.levelUp { card.displayName })
                 dispatchEffectHandler(
-                    handler,
-                    param = OnAbilityEarnEffectHandlerParam(earnedPlayer = currentPlayer)
+                    handler = levelUpHandler,
+                    param = OnLevelUpEffectHandlerParam(player = currentPlayer)
                 )
             }
-            // TODO 獲得前に持っていた能力
+
+            // TODO 獲得前に持っていた能力の、別な能力獲得時の効果発動
             // currentPlayer.earnedAbilities.mapNotNull {
             //     it.takeUnless { a -> a.instanceId == ability.instanceId }.onAnotherAbilityEarn()
             // }.forEach { ... }
