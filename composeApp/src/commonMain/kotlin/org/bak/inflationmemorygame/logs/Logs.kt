@@ -7,62 +7,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.ParagraphStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.sp
 import inflationmemorygame.composeapp.generated.resources.Res
-import inflationmemorygame.composeapp.generated.resources.message_ability_level_down_suffix
-import inflationmemorygame.composeapp.generated.resources.message_discover_suffix
-import inflationmemorygame.composeapp.generated.resources.message_effect_activate_suffix
-import inflationmemorygame.composeapp.generated.resources.message_effect_deactivate_suffix
-import inflationmemorygame.composeapp.generated.resources.message_effect_mistake_suffix
-import inflationmemorygame.composeapp.generated.resources.message_ability_level_up_suffix
-import inflationmemorygame.composeapp.generated.resources.message_ability_lost_suffix
-import inflationmemorygame.composeapp.generated.resources.message_match_suffix
-import inflationmemorygame.composeapp.generated.resources.message_progress_not_flippable
-import inflationmemorygame.composeapp.generated.resources.message_stage_progress_prefix
-import inflationmemorygame.composeapp.generated.resources.message_tag_discover
-import inflationmemorygame.composeapp.generated.resources.message_tag_effect
-import inflationmemorygame.composeapp.generated.resources.message_tag_match
-import inflationmemorygame.composeapp.generated.resources.message_tag_progress
-import inflationmemorygame.composeapp.generated.resources.message_turn_progress_prefix
+import inflationmemorygame.composeapp.generated.resources.log_ability_level_down
+import inflationmemorygame.composeapp.generated.resources.log_ability_level_up
+import inflationmemorygame.composeapp.generated.resources.log_ability_lost
+import inflationmemorygame.composeapp.generated.resources.log_discover
+import inflationmemorygame.composeapp.generated.resources.log_effect_activate
+import inflationmemorygame.composeapp.generated.resources.log_effect_deactivate
+import inflationmemorygame.composeapp.generated.resources.log_effect_mistake
+import inflationmemorygame.composeapp.generated.resources.log_match
+import inflationmemorygame.composeapp.generated.resources.log_not_flippable
+import inflationmemorygame.composeapp.generated.resources.log_start_stage
+import inflationmemorygame.composeapp.generated.resources.log_start_turn
+import inflationmemorygame.composeapp.generated.resources.log_tag_ability
+import inflationmemorygame.composeapp.generated.resources.log_tag_discover
+import inflationmemorygame.composeapp.generated.resources.log_tag_match
+import inflationmemorygame.composeapp.generated.resources.log_tag_progress
 import kotlinx.coroutines.Job
+import org.bak.inflationmemorygame.util.applyInnerAttributes
 import org.bak.inflationmemorygame.values.Colors
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 
-private val FixedMessageFrontSize = 12.sp
-private val FixedMessageLineHeight = 14.sp
-private val ParameterMessageFrontSize = 14.sp
-private val ParameterMessageLineHeight = 16.sp
-
 @Stable
-sealed class Logs(
-    val tag: StringResource,
-    val color: Color,
-    private val messageBuilder: @Composable () -> AnnotatedString
-) {
-    constructor(
-        tag: StringResource,
-        color: Color,
-        fixedMessageRes: StringResource
-    ) : this(tag, color, { buildMessage(fixedMessageRes) })
-
-    constructor(
-        tag: StringResource,
-        color: Color,
-        prefixRes: StringResource? = null,
-        parameter: String,
-        suffixRes: StringResource? = null
-    ) : this(tag, color, { buildMessage(prefixRes, parameter, suffixRes) })
+class Logs(val category: Category, private val messageBuilder: @Composable () -> String) {
 
     val instanceId = Random.nextLong()
 
-    val message: AnnotatedString @Composable get() = messageBuilder()
+    val message: AnnotatedString @Composable get() = messageBuilder().applyInnerAttributes()
 
     var visibility by mutableStateOf(Visibility.Appearing)
         private set
@@ -90,116 +63,56 @@ sealed class Logs(
         Disappeared
     }
 
-    class StartState(stage: Int) : Logs(
-        tag = Res.string.message_tag_progress,
-        color = Colors.ProgressMessageColor,
-        prefixRes = Res.string.message_stage_progress_prefix,
-        parameter = stage.toString()
-    )
-
-    class StartTurn(turn: Int) : Logs(
-        tag = Res.string.message_tag_progress,
-        color = Colors.ProgressMessageColor,
-        prefixRes = Res.string.message_turn_progress_prefix,
-        parameter = turn.toString()
-    )
-
-    class NotFlippable : Logs(
-        tag = Res.string.message_tag_progress,
-        color = Colors.ProgressMessageColor,
-        fixedMessageRes = Res.string.message_progress_not_flippable
-    )
-
-    class Discover(name: String) : Logs(
-        tag = Res.string.message_tag_discover,
-        color = Colors.DiscoverMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_discover_suffix
-    )
-
-    class Match(name: String) : Logs(
-        tag = Res.string.message_tag_match,
-        color = Colors.MatchMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_match_suffix
-    )
-
-    class LevelUp(name: String) : Logs(
-        tag = Res.string.message_tag_match,
-        color = Colors.MatchMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_ability_level_up_suffix
-    )
-
-    class LevelDown(name: String) : Logs(
-        tag = Res.string.message_tag_match,
-        color = Colors.MatchMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_ability_level_down_suffix
-    )
-
-    class Lost(name: String) : Logs(
-        tag = Res.string.message_tag_match,
-        color = Colors.MatchMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_ability_lost_suffix
-    )
-
-    class GainStatusEffect(name: String) : Logs(
-        tag = Res.string.message_tag_effect,
-        color = Colors.AbilityMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_effect_activate_suffix
-    )
-
-    class LostStatusEffect(name: String) : Logs(
-        tag = Res.string.message_tag_effect,
-        color = Colors.AbilityMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_effect_deactivate_suffix
-    )
-
-    class EffectMistake(name: String) : Logs(
-        tag = Res.string.message_tag_effect,
-        color = Colors.AbilityMessageColor,
-        parameter = name,
-        suffixRes = Res.string.message_effect_mistake_suffix
-    )
-}
-
-@Composable
-private fun buildMessage(fixedMessageRes: StringResource) = buildAnnotatedString {
-    val message = stringResource(fixedMessageRes)
-    withStyle(style = ParagraphStyle(lineHeight = FixedMessageLineHeight)) {
-        verbose(text = message)
+    enum class Category(val tag: StringResource, val color: Color) {
+        Progress(tag = Res.string.log_tag_progress, color = Colors.ProgressMessageColor),
+        Discover(tag = Res.string.log_tag_discover, color = Colors.DiscoverMessageColor),
+        Match(tag = Res.string.log_tag_match, color = Colors.MatchMessageColor),
+        Ability(tag = Res.string.log_tag_ability, color = Colors.AbilityMessageColor)
     }
-}
 
-@Composable
-private fun buildMessage(
-    prefixRes: StringResource?,
-    parameter: String,
-    suffixRes: StringResource?
-) = buildAnnotatedString {
-    val prefix = prefixRes?.let { stringResource(it) }
-    val suffix = suffixRes?.let { stringResource(it) }
-    withStyle(style = ParagraphStyle(lineHeight = ParameterMessageLineHeight)) {
-        prefix?.let { verbose(text = it) }
-        important(text = parameter)
-        suffix?.let { verbose(text = it) }
-    }
-}
+    companion object {
+        fun startStage(stage: Int) = Logs(category = Category.Progress) {
+            stringResource(Res.string.log_start_stage, stage)
+        }
 
-private fun AnnotatedString.Builder.verbose(text: String) {
-    withStyle(style = SpanStyle(fontSize = FixedMessageFrontSize)) {
-        append(text)
-    }
-}
+        fun startTurn(turn: Int) = Logs(category = Category.Progress) {
+            stringResource(Res.string.log_start_turn, turn)
+        }
 
-private fun AnnotatedString.Builder.important(text: String) {
-    withStyle(
-        style = SpanStyle(fontSize = ParameterMessageFrontSize, fontWeight = FontWeight.Bold)
-    ) {
-        append(text)
+        fun notFlippable() = Logs(category = Category.Progress) {
+            stringResource(Res.string.log_not_flippable)
+        }
+
+        fun discover(name: String) = Logs(category = Category.Discover) {
+            stringResource(Res.string.log_discover, name)
+        }
+
+        fun match(name: String) = Logs(category = Category.Match) {
+            stringResource(Res.string.log_match, name)
+        }
+
+        fun levelUp(name: String) = Logs(category = Category.Match) {
+            stringResource(Res.string.log_ability_level_up, name)
+        }
+
+        fun levelDown(name: String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_ability_level_down, name)
+        }
+
+        fun lost(name: String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_ability_lost, name)
+        }
+
+        fun gainStatusEffect(name: String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_activate, name)
+        }
+
+        fun lostStatusEffect(name: String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_deactivate, name)
+        }
+
+        fun effectMistake(name: String) = Logs(category = Category.Ability) {
+            stringResource(Res.string.log_effect_mistake, name)
+        }
     }
 }

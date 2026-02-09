@@ -17,11 +17,11 @@ abstract class AbilityCard(
     private val earnedAbilityFactory: (() -> EarnedAbility)? = null
 ) : Ability by ability {
 
-    open fun gainAbility(): EarnedAbility? {
-        if (earnedAbilityFactory == null) {
-            throw NotImplementedError("$displayName の獲得処理を実装してください.")
+    open fun gainAbility(): Result<EarnedAbility> {
+        return if (earnedAbilityFactory == null) {
+            Result.failure(NotImplementedError("$displayName の獲得処理を実装してください."))
         } else {
-            return earnedAbilityFactory()
+            Result.success(earnedAbilityFactory())
         }
     }
 

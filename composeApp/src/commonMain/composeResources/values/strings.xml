@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="greeting">こんにちは、%1$sさん！</string>
+    <string name="separator_big_bold">[bb]</string>
+    <string name="separator_color">[co]</string>
 
     <string name="confirm_end_turn_title">まだ、カードをめくれます</string>
     <string name="confirm_end_turn_message">ターンを終了しますか？</string>
@@ -10,20 +11,21 @@
     <string name="confirm_dialog_cancel">キャンセル</string>
     <string name="confirm_dialog_skip_forever">次からは確認しない</string>
 
-    <string name="message_tag_progress">進行</string>
-    <string name="message_tag_discover">発見</string>
-    <string name="message_tag_match">獲得</string>
-    <string name="message_tag_effect">能力</string>
+    <string name="log_tag_progress">進行</string>
+    <string name="log_tag_discover">発見</string>
+    <string name="log_tag_match">獲得</string>
+    <string name="log_tag_ability">能力</string>
 
-    <string name="message_stage_progress_prefix">ステージ </string>
-    <string name="message_turn_progress_prefix">ターン </string>
-    <string name="message_progress_not_flippable">このターンは、もうめくれない</string>
-    <string name="message_discover_suffix">を発見した</string>
-    <string name="message_match_suffix">を獲得した</string>
-    <string name="message_ability_level_up_suffix">のレベルが上がった</string>
-    <string name="message_ability_level_down_suffix">のレベルが下がった</string>
-    <string name="message_ability_lost_suffix">を失った</string>
-    <string name="message_effect_activate_suffix">の効果が発動した</string>
-    <string name="message_effect_deactivate_suffix">の効果が切れた</string>
-    <string name="message_effect_mistake_suffix">の効果は発動しなかった</string>
+    <string name="log_start_stage">ステージ [bb]%1$d[bb]</string>
+    <string name="log_start_turn">ターン [bb]%1$d[bb]</string>
+    <string name="log_not_flippable">このターンは、もうめくれない</string>
+    <string name="log_discover">[bb]%1$s[bb]を発見した</string>
+    <string name="log_match">[bb]%1$s[bb]を獲得した</string>
+    <string name="log_ability_level_up">[bb]%1$s[bb]のレベルが上がった</string>
+    <string name="log_ability_level_down">[bb]%1$s[bb]のレベルが下がった</string>
+    <string name="log_ability_lost">[bb]%1$s[bb]を失った</string>
+    <string name="log_effect_activate">[bb]%1$s[bb]の効果が発動した</string>
+    <string name="log_effect_deactivate">[bb]%1$s[bb]の効果が切れた</string>
+    <string name="log_effect_mistake">[bb]%1$s[bb]の効果は発動しなかった</string>
+    <string name="log_totteoki_match_too_early">[bb]とっておき[bb]を取るのが早すぎた</string>
 </resources>

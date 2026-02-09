@@ -46,9 +46,9 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
                 )
                 return buildEffectHandlerResults {
                     if (holdCards.isEmpty()) {
-                        Logs.EffectMistake(name = displayName)
+                        printLog(Logs.effectMistake(name = displayName))
                     } else {
-                        Logs.GainStatusEffect(name = displayName)
+                        printLog(Logs.gainStatusEffect(name = displayName))
                         holdCards.forEach {
                             keepFlipped(targetInstanceId = it)
                         }
@@ -63,7 +63,7 @@ class HoldAbility : GrowAbility(ability = Abilities.Hold) {
             override val priority: Int = OnAbilityLostEffectHandler.PRIORITY_HOLD_LEVEL_DOWN
             override suspend fun dispatch(param: OnAbilityLostEffectHandlerParam): List<EffectHandlerResults> {
                 return buildEffectHandlerResults {
-                    printLog(Logs.LevelDown(name = displayName))
+                    printLog(Logs.levelDown(name = displayName))
                     reverseCard(targetInstanceId = holdCards.random().also {
                         holdCards.remove(it)
                     })

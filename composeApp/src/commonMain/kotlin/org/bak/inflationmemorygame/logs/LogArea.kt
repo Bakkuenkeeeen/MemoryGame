@@ -104,7 +104,7 @@ fun LogItem(modifier: Modifier = Modifier, log: Logs) {
     Row(
         modifier = modifier
             .height(intrinsicSize = IntrinsicSize.Max)
-            .background(color = log.color, shape = RoundedCornerShape(size = 8.dp))
+            .background(color = log.category.color, shape = RoundedCornerShape(size = 8.dp))
             .padding(all = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -118,7 +118,7 @@ fun LogItem(modifier: Modifier = Modifier, log: Logs) {
                 .padding(all = 2.dp)
         ) {
             Text(
-                text = stringResource(log.tag).toVertical(),
+                text = stringResource(log.category.tag).toVertical(),
                 modifier = Modifier.align(Alignment.Center),
                 fontSize = 10.sp,
                 lineHeight = 12.sp

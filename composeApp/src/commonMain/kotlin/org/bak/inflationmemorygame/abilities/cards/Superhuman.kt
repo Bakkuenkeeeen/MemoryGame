@@ -31,7 +31,7 @@ class SuperhumanAbility : EarnedAbility(ability = Abilities.Superhuman) {
                 override val priority: Int = OnTurnStartEffectHandler.PRIORITY_SUPERHUMAN
                 override suspend fun dispatch(param: OnTurnStartEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.GainStatusEffect(name = displayName))
+                        printLog(Logs.gainStatusEffect(name = displayName))
                         gainStatusEffect(
                             effect = StatusEffect(
                                 parentAbilityInstanceId = instanceId,
@@ -54,7 +54,7 @@ class SuperhumanAbility : EarnedAbility(ability = Abilities.Superhuman) {
                 override val priority: Int = OnTurnEndEffectHandler.PRIORITY_SUPERHUMAN
                 override suspend fun dispatch(param: OnTurnEndEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.LostStatusEffect(name = displayName))
+                        printLog(Logs.lostStatusEffect(name = displayName))
                         lostStatusEffect(parentInstanceId = instanceId)
                     }
             }

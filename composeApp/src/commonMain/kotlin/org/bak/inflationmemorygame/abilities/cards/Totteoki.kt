@@ -3,6 +3,7 @@ package org.bak.inflationmemorygame.abilities.cards
 import org.bak.inflationmemorygame.abilities.Abilities
 import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
+import org.bak.inflationmemorygame.abilities.GainAbilityError
 import org.bak.inflationmemorygame.abilities.StatusEffect
 import org.bak.inflationmemorygame.abilities.buildEffectHandlerResults
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandler
@@ -32,13 +33,13 @@ class TotteokiCard : AbilityCard(ability = Abilities.Totteoki) {
             super.description + "\n\n現在の蓄積数 : ${max(0, turns)}"
         }
 
-    override fun gainAbility(): EarnedAbility? {
+    override fun gainAbility(): Result<EarnedAbility> {
         val amount = turns
         turns = -1
         return if (amount > 0) {
-            TotteokiAbility(amount)
+            Result.success(TotteokiAbility(amount))
         } else {
-            null
+            Result.failure(GainAbilityError.TotteokiMatchTooEarlyError())
         }
     }
 
@@ -67,7 +68,7 @@ class TotteokiAbility(private val amount: Int) : EarnedAbility(ability = Abiliti
             override val priority: Int = OnAbilityEarnEffectHandler.PRIORITY_TOTTEOKI
             override suspend fun dispatch(param: OnAbilityEarnEffectHandlerParam) =
                 buildEffectHandlerResults {
-                    printLog(Logs.GainStatusEffect(name = displayName))
+                    printLog(Logs.gainStatusEffect(name = displayName))
                     gainStatusEffect(
                         effect = StatusEffect(
                             parentAbilityInstanceId = instanceId,

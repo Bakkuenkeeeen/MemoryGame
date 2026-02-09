@@ -47,7 +47,7 @@ abstract class EarnedAbility(ability: Abilities) : Ability by ability {
                 override val priority: Int = OnAbilityLostEffectHandler.PRIORITY_DEFAULT
                 override suspend fun dispatch(param: OnAbilityLostEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.LostStatusEffect(name = displayName))
+                        printLog(Logs.lostStatusEffect(name = displayName))
                         lostStatusEffect(parentInstanceId = instanceId)
                     }
             }

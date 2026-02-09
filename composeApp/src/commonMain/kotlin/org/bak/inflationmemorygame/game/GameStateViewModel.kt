@@ -18,6 +18,7 @@ import org.bak.inflationmemorygame.abilities.AbilityCard
 import org.bak.inflationmemorygame.abilities.EarnedAbility
 import org.bak.inflationmemorygame.abilities.EffectHandler
 import org.bak.inflationmemorygame.abilities.EffectHandlerResults
+import org.bak.inflationmemorygame.abilities.GainAbilityError
 import org.bak.inflationmemorygame.abilities.GrowAbility
 import org.bak.inflationmemorygame.abilities.handlers.OnAbilityEarnEffectHandlerParam
 import org.bak.inflationmemorygame.abilities.handlers.OnCardFlipEffectHandlerParam
@@ -90,7 +91,7 @@ class GameStateViewModel(
     suspend fun startStage() {
         // 溜まったダイアログのスタックをクリア
         clearDialogs()
-        appendLog(log = Logs.StartState(currentStage.stage))
+        appendLog(log = Logs.startStage(currentStage.stage))
         currentStage.cards.forEach { card ->
             applyOneTimeVisualEffects(
                 card = card,
@@ -105,7 +106,7 @@ class GameStateViewModel(
         lockScreen()
         currentStage.incrementTurn()
         currentPlayer.clearFlippedCards()
-        appendLog(log = Logs.StartTurn(currentStage.turns))
+        appendLog(log = Logs.startTurn(currentStage.turns))
 
         // 場札の効果発動
         dispatchAllEffectHandlersFromStage(
@@ -243,7 +244,7 @@ class GameStateViewModel(
             ),
             awaitCompletion = true
         )
-        appendLog(log = Logs.Discover(card.displayName))
+        appendLog(log = Logs.discover(card.displayName))
 
         if (discoveredCards.add(card.displayName)) {
             if (settings.shouldShowDetailWhenDiscover) {
@@ -306,13 +307,17 @@ class GameStateViewModel(
             val ability = if (earned is GrowAbility) {
                 earned.also {
                     it.levelUp()
-                    appendLog(log = Logs.LevelUp(card.displayName))
+                    appendLog(log = Logs.levelUp(card.displayName))
                 }
             } else {
-                card.gainAbility()?.also {
+                card.gainAbility().onSuccess {
                     currentPlayer.addAbility(ability = it)
-                    appendLog(log = Logs.Match(card.displayName))
-                }
+                    appendLog(log = Logs.match(card.displayName))
+                }.onFailure {
+                    if (it is GainAbilityError) {
+                        appendLog(log = it.log)
+                    }
+                }.getOrNull()
             }
             delay(Constants.GAME_FLOW_INTERVAL_NORMAL)
 
@@ -351,7 +356,7 @@ class GameStateViewModel(
     }
 
     private suspend fun onNotFlippable() {
-        appendLog(log = Logs.NotFlippable())
+        appendLog(log = Logs.notFlippable())
     }
 
     private suspend fun <TParam : EffectHandler.Param> dispatchAllEffectHandlersFromStage(

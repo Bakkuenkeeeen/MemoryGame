@@ -40,10 +40,10 @@ class HiramekiAbility : EarnedAbility(ability = Abilities.Hirameki) {
                         if (match == null) {
                             // 対象がなければ再使用可能にしておく
                             changeEffectState(to = EffectState.Ready)
-                            printLog(Logs.EffectMistake(name = displayName))
+                            printLog(Logs.effectMistake(name = displayName))
                         } else {
                             changeEffectState(to = EffectState.End)
-                            printLog(Logs.GainStatusEffect(name = displayName))
+                            printLog(Logs.gainStatusEffect(name = displayName))
                             applyVisualEffect(
                                 targetInstanceId = match.instanceId,
                                 visualEffect = VisualEffects.Ripple()

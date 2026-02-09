@@ -24,7 +24,7 @@ class PlusOneAbility : EarnedAbility(ability = Abilities.PlusOne) {
         override val priority: Int = OnAbilityEarnEffectHandler.PRIORITY_PLUS_ONE
         override suspend fun dispatch(param: OnAbilityEarnEffectHandlerParam) =
             buildEffectHandlerResults {
-                printLog(Logs.GainStatusEffect(name = displayName))
+                printLog(Logs.gainStatusEffect(name = displayName))
                 gainStatusEffect(
                     effect = StatusEffect(
                         parentAbilityInstanceId = instanceId,

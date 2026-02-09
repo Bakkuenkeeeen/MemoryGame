@@ -35,7 +35,7 @@ class OikazeAbility : EarnedAbility(ability = Abilities.Oikaze) {
                 override val priority: Int = OnPairMatchEffectHandler.PROIORITY_OIKAZE
                 override suspend fun dispatch(param: OnPairMatchEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.GainStatusEffect(name = displayName))
+                        printLog(Logs.gainStatusEffect(name = displayName))
                         gainStatusEffect(
                             effect = StatusEffect(
                                 parentAbilityInstanceId = instanceId,
@@ -56,7 +56,7 @@ class OikazeAbility : EarnedAbility(ability = Abilities.Oikaze) {
                 override val priority: Int = OnTurnEndEffectHandler.PRIORITY_OIKAZE
                 override suspend fun dispatch(param: OnTurnEndEffectHandlerParam) =
                     buildEffectHandlerResults {
-                        printLog(Logs.LostStatusEffect(name = displayName))
+                        printLog(Logs.lostStatusEffect(name = displayName))
                         lostStatusEffect(parentInstanceId = instanceId)
                     }
             }
