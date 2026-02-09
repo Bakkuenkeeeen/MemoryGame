@@ -16,7 +16,7 @@ import kotlin.random.Random
 abstract class AbilityCard(
     ability: Abilities,
     private val earnedAbilityFactory: (() -> EarnedAbility)? = null
-) : Ability by ability {
+) : Ability.Implementable by ability {
 
     open fun gainAbility(): Result<EarnedAbility> {
         return if (earnedAbilityFactory == null) {

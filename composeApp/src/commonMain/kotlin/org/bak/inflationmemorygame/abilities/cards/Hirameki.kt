@@ -24,7 +24,10 @@ class HiramekiCard : AbilityCard.NoFieldEffect(
 
 class HiramekiAbility : EarnedAbility(ability = Abilities.Hirameki) {
 
-    var count = 0
+    private val threshold get() = Params.HIRAMEKI_DEFAULT_AMOUNT - level + 1
+
+    override val descriptionParams: Array<Any> get() = arrayOf(threshold)
+    private var flippedCount = 0
 
     override fun onEarn(): OnAbilityEarnEffectHandler? {
         changeEffectState(to = EffectState.Ready)
@@ -34,9 +37,9 @@ class HiramekiAbility : EarnedAbility(ability = Abilities.Hirameki) {
     override fun onLevelUp(amount: Int) = OnLevelUpEffectHandler.NoAction
 
     override fun onCardFlip(): OnCardFlipEffectHandler? {
-        count++
-        if (count >= Params.HIRAMEKI_DEFAULT_AMOUNT - level + 1) {
-            count = 0
+        flippedCount++
+        if (flippedCount >= threshold) {
+            flippedCount = 0
             return object : OnCardFlipEffectHandler {
                 override val priority: Int = OnCardFlipEffectHandler.PRIORITY_HIRAMEKI
                 override suspend fun dispatch(param: OnCardFlipEffectHandlerParam): List<EffectHandlerResults> {

@@ -21,9 +21,13 @@ class HoldCard : AbilityCard.NoFieldEffect(
     earnedAbilityFactory = ::HoldAbility
 )
 
+// TODO
+//  ホールドの効果で、とっておきが選ばれないようにする
 class HoldAbility : EarnedAbility(ability = Abilities.Hold) {
 
     private val holdCards = mutableListOf<Long>()
+
+    override val descriptionParams: Array<Any> get() = arrayOf(level)
 
     override fun onEarn(): OnAbilityEarnEffectHandler? = null
     override fun onLevelUp(amount: Int) = OnLevelUpEffectHandler.NoAction

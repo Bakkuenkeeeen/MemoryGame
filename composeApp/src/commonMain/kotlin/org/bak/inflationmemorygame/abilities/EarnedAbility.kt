@@ -14,7 +14,7 @@ import org.bak.inflationmemorygame.abilities.handlers.OnTurnStartEffectHandler
 import org.bak.inflationmemorygame.logs.Logs
 import kotlin.random.Random
 
-abstract class EarnedAbility(ability: Abilities) : Ability by ability {
+abstract class EarnedAbility(ability: Abilities) : Ability.Implementable by ability {
 
     /** 同一の獲得済み能力を区別するためのID. */
     val instanceId: Long = Random.nextLong()

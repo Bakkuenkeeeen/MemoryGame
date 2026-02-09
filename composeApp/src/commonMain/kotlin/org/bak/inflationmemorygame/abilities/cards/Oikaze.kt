@@ -30,8 +30,7 @@ class OikazeAbility : EarnedAbility(ability = Abilities.Oikaze) {
 
     private var count = 0
 
-    override val description: String
-        @Composable get() = stringResource(Res.string.description_oikaze, level)
+    override val descriptionParams: Array<Any> get() = arrayOf(level)
 
     override fun onEarn(): OnAbilityEarnEffectHandler? {
         changeEffectState(to = EffectState.Ready)

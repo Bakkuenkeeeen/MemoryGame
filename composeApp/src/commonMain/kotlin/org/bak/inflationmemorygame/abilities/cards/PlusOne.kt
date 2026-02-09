@@ -27,8 +27,7 @@ class PlusOneCard : AbilityCard.NoFieldEffect(
 )
 
 class PlusOneAbility : EarnedAbility(ability = Abilities.PlusOne) {
-    override val description: String
-        @Composable get() = stringResource(Res.string.description_plus_one, level)
+    override val descriptionParams: Array<Any> get() = arrayOf(level)
 
     override fun onEarn(): OnAbilityEarnEffectHandler = object : OnAbilityEarnEffectHandler {
         override val priority: Int = OnAbilityEarnEffectHandler.PRIORITY_PLUS_ONE

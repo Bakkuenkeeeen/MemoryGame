@@ -1,6 +1,5 @@
 package org.bak.inflationmemorygame.abilities
 
-import androidx.compose.runtime.Composable
 import inflationmemorygame.composeapp.generated.resources.Res
 import inflationmemorygame.composeapp.generated.resources.description_hirameki
 import inflationmemorygame.composeapp.generated.resources.description_hold
@@ -20,57 +19,58 @@ import inflationmemorygame.composeapp.generated.resources.oikaze
 import inflationmemorygame.composeapp.generated.resources.plus_one
 import inflationmemorygame.composeapp.generated.resources.superhuman
 import inflationmemorygame.composeapp.generated.resources.totteoki
-import org.bak.inflationmemorygame.util.applyInnerAttributes
 import org.bak.inflationmemorygame.values.MaxOccurrence
 import org.bak.inflationmemorygame.values.MaxOccurrences
 import org.bak.inflationmemorygame.values.Params
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 enum class Abilities(
-    private val displayNameRes: StringResource,
-    private val descriptionBuilder: @Composable () -> String,
+    override val displayNameRes: StringResource,
+    override val descriptionRes: StringResource,
+    override val descriptionParams: Array<Any>,
     maxOccurrence: MaxOccurrence,
     override val image: DrawableResource
-) : Ability {
+) : Ability.Implementable {
     PlusOne(
         displayNameRes = Res.string.name_plus_one,
-        descriptionBuilder = { stringResource(Res.string.description_plus_one, 1) },
+        descriptionRes = Res.string.description_plus_one,
+        descriptionParam = 1,
         maxOccurrence = MaxOccurrences.PlusOne,
         image = Res.drawable.plus_one
     ),
     Superhuman(
         displayNameRes = Res.string.name_superhuman,
-        descriptionBuilder = { stringResource(Res.string.description_superhuman, 2) },
+        descriptionRes = Res.string.description_superhuman,
+        descriptionParam = 2,
         maxOccurrence = MaxOccurrences.Superhuman,
         image = Res.drawable.superhuman
     ),
     Oikaze(
         displayNameRes = Res.string.name_oikaze,
-        descriptionBuilder = { stringResource(Res.string.description_oikaze, 1) },
+        descriptionRes = Res.string.description_oikaze,
+        descriptionParam = 1,
         maxOccurrence = MaxOccurrences.Oikaze,
         image = Res.drawable.oikaze
     ),
     Hirameki(
         displayNameRes = Res.string.name_hirameki,
-        descriptionBuilder = {
-            stringResource(Res.string.description_hirameki, Params.HIRAMEKI_DEFAULT_AMOUNT)
-        },
+        descriptionRes = Res.string.description_hirameki,
+        descriptionParam = Params.HIRAMEKI_DEFAULT_AMOUNT,
         maxOccurrence = MaxOccurrences.Hirameki,
         image = Res.drawable.hirameki
     ),
     Hold(
         displayNameRes = Res.string.name_hold,
-        descriptionBuilder = { stringResource(Res.string.description_hold, 1) },
+        descriptionRes = Res.string.description_hold,
+        descriptionParam = 1,
         maxOccurrence = MaxOccurrences.Hold,
         image = Res.drawable.hold
     ),
     Totteoki(
         displayNameRes = Res.string.name_totteoki,
-        descriptionBuilder = {
-            stringResource(Res.string.description_totteoki, Params.TOTTEOKI_MAX)
-        },
+        descriptionRes = Res.string.description_totteoki,
+        descriptionParam = Params.TOTTEOKI_MAX,
         maxOccurrence = MaxOccurrences.Totteoki,
         image = Res.drawable.totteoki
     )
@@ -79,18 +79,18 @@ enum class Abilities(
     constructor(
         displayNameRes: StringResource,
         descriptionRes: StringResource,
+        descriptionParam: Any,
         maxOccurrence: MaxOccurrence,
         image: DrawableResource
     ) : this(
         displayNameRes = displayNameRes,
-        descriptionBuilder = { stringResource(descriptionRes) },
+        descriptionRes = descriptionRes,
+        descriptionParams = arrayOf(descriptionParam),
         maxOccurrence = maxOccurrence,
         image = image
     )
 
     override val id: Int get() = ordinal
-    override val displayName: String @Composable get() = stringResource(displayNameRes)
-    override val description: String @Composable get() = descriptionBuilder()
     override val maxOccurrenceInStage: Int = maxOccurrence.inStage
     override val maxLevel: Int = maxOccurrence.inGame
 }

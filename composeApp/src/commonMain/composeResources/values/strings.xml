@@ -14,7 +14,7 @@
     <string name="name_hold">ホールド</string>
     <string name="description_hold">表になっているカードのうち[bb]%1$d枚[bb]が、ターン終了時に表のまま残る。</string>
     <string name="name_totteoki">とっておき</string>
-    <string name="description_totteoki">このカードは、表のまま残り続ける。\n揃えるまでに終了したターン数に応じて、最大%1$d回まで、めくれる回数が増える。\n(このカードをめくったターンは数えない。)</string>
+    <string name="description_totteoki">このカードは、表のまま残り続ける。\n揃えるまでに終了したターン数に応じて、[bb]最大%1$d回まで[bb]、めくれる回数が増える。\n(このカードをめくったターンは数えない。)</string>
     <string name="description_totteoki_appendix">\n\n現在の蓄積数 : [bb]%1$d[bb]</string>
 
     <string name="confirm_end_turn_title">まだ、カードをめくれます</string>
