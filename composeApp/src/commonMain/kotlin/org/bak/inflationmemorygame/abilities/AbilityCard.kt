@@ -35,10 +35,6 @@ abstract class AbilityCard(
     var isMatched: Boolean by mutableStateOf(false)
         private set
 
-    /** 「虚無」化しているかどうか. */
-    var isVoidOut: Boolean by mutableStateOf(false)
-        private set
-
     /** クリック可能かどうか. */
     var isInteractionEnabled: Boolean by mutableStateOf(true)
 

@@ -122,7 +122,7 @@ private fun DialogLayer(dialog: Dialogs<*>) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Gray.copy(alpha = 0.75f))
+            .background(color = Color.Gray.copy(alpha = 0.9f))
             .safeDrawingPadding()
             .clickable(interactionSource = interactionSource, indication = null) {
                 dialog.dismiss(result = null)

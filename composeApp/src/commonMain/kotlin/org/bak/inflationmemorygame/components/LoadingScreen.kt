@@ -3,6 +3,8 @@ package org.bak.inflationmemorygame.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -26,7 +28,16 @@ import androidx.compose.ui.unit.dp
 @Composable
 @Preview
 fun LoadingScreen(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize().background(color = Color.DarkGray)) {
+    Box(
+        modifier = modifier
+        .fillMaxSize()
+        .background(color = Color.DarkGray)
+        .clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = { /* クリック無効 */ }
+        )
+    ) {
         var targetValue by remember { mutableFloatStateOf(0f) }
         LaunchedEffect(Unit) {
             targetValue = 1f

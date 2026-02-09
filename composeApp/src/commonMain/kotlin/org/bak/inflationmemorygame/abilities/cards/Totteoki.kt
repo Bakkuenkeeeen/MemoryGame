@@ -29,7 +29,7 @@ class TotteokiCard : AbilityCard(ability = Abilities.Totteoki) {
         get() = if (turns == -1) {
             super.description
         } else {
-            super.description + "\n(現在の蓄積数 : ${max(0, turns)})"
+            super.description + "\n\n現在の蓄積数 : ${max(0, turns)}"
         }
 
     override fun gainAbility(): EarnedAbility? {
